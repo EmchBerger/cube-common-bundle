@@ -40,9 +40,8 @@ class FilterSessionHelper
             if (is_subclass_of($f, FormInterface::class)) {
                 $form = $f;
                 $f = $form->getViewData();
-                if (is_array($f) && $f && $form->getConfig()->hasOption('transformer') && $form->getConfig()->hasOption('class')) {
-                    // is a tetranz_select2_entity, which has the ids as keys in view format
-                    $f = array_keys($f);
+                if (self::isProbablyTetranzEntityData($f) && self::isTetranzEntityForm($form)) {
+                    $f = self::tetranzEntityDataToNormal($f);
                 }
                 $filter[$n] = $f;
             }
@@ -65,6 +64,14 @@ class FilterSessionHelper
     {
         $form->submit($data);
         if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($data as $key => $value) {
+                if (self::isProbablyTetranzEntityData($value)) {
+                    $elementForm = $form[$key];
+                    if (!$elementForm->getViewData() && self::isTetranzEntityForm($elementForm)) {
+                        $data[$key] = self::tetranzEntityDataToNormal($value);
+                    }
+                }
+            }
             self::setFilterDataToSession($request->getSession(), $pageName, $data, $onSuccessKeepFn);
 
             return true;
@@ -203,5 +210,27 @@ class FilterSessionHelper
         }
 
         return $filter;
+    }
+
+    private static function isProbablyTetranzEntityData($viewData)
+    {
+        return is_array($viewData) && $viewData;
+    }
+
+    private static function isTetranzEntityForm(FormInterface $form)
+    {
+        return $form->getConfig()->hasOption('transformer') && $form->getConfig()->hasOption('class');
+    }
+
+    /**
+     * Convert tetranz_select2_entity view data, which has the ids as keys in view format.
+     *
+     * @param string[] $viewData
+     *
+     * @return int[]
+     */
+    private static function tetranzEntityDataToNormal(array $viewData)
+    {
+        return array_keys($viewData);
     }
 }
