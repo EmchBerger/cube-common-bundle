@@ -3,6 +3,8 @@
 namespace CubeTools\CubeCommonBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Debug\Exception\FlattenException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -47,6 +49,41 @@ class DevelopmentSupportController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Simplify reporting of a bug by providing a link to prefill the form.
+     */
+    public function fullBugLinkAction(Request $request, $exception = null)
+    {
+        $projVer = $this->get('cube_common.project_version');
+        $githubProjectUrl = $projVer->getGitRepoUrl();
+        $version = $projVer->getVersionString();
+        $verHash = $projVer->getGitHash();
+
+        $reqInfo = $this->requestHandling($request);
+        if ('/_fragment' === $request->getPathInfo()) {
+            $request = $this->get('request_stack')->getMasterRequest();
+        }
+        $reqInfo['reallyRelated'] = $request->getHttpHost().$request->getRequestUri();
+
+        $msg = '';
+        $title = 'Error';
+        if ($exception) {
+            if ($exception instanceof FlattenException) {
+                $errClass = $exception->getClass();
+            } else {
+                $errClass = get_class($exception);
+            }
+            $title .= ' '.substr($errClass, strrpos($errClass, '\\') + 1).': '.$exception->getMessage();
+            // $exception.getFile().':'.$exception.getLine();
+            // $exception->getTrace()
+        }
+
+        $msgTail = $this->generateBugMsg($version, $verHash, $reqInfo);
+        $link = $this->generateBugLink($githubProjectUrl, $msg.$msgTail, null, $title);
+
+        return new Response($link);
     }
 
     private function requestHandling(Request $request)
@@ -105,9 +142,13 @@ class DevelopmentSupportController extends Controller
         return $msgBody;
     }
 
-    private function generateBugLink($githubProjectUrl, $msgBody, $module = 'XXmoduleXX')
+    private function generateBugLink($githubProjectUrl, $msgBody, $module = null, $title = '')
     {
-        return $githubProjectUrl.'/issues/new?HINT= SIGN IN! &title='.urlencode('['.$module.']').
+        if (null === $module) {
+            $module = 'XXmoduleXX';
+        }
+
+        return $githubProjectUrl.'/issues/new?HINT= SIGN IN! &title='.urlencode('['.$module.'] ').urlencode($title).
                 '&body='.urlencode($msgBody);
     }
 }
