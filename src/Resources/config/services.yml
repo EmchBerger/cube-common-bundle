@@ -21,3 +21,7 @@ services:
         class: CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener
         tags:
             - { name: kernel.event_subscriber }
+    cube_common.excel.converter:
+        class: CubeTools\CubeCommonBundle\FileFormat\ExcelConverter
+        arguments:
+            - "@phpexcel"

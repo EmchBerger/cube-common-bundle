@@ -19,12 +19,14 @@
         "symfony/form": "^2.7|^3.0",
         "symfony/http-foundation": "^2.7|^3.0",
         "symfony/phpunit-bridge": "^2.7|^3.0",
-        "symfony/dom-crawler": "^3.3"
+        "symfony/dom-crawler": "^3.3",
+        "liuggio/excelbundle": "~2.0"
     },
     "suggest": {
         "symfony/form": "for Form\\*",
         "symfony/http-foundation": "for Form\\*Session",
-        "symfony/dom-crawler": "for DataHandling\\XMLExtractor"
+        "symfony/dom-crawler": "for DataHandling\\XMLExtractor",
+        "liuggio/excelbundle": "for excel services"
     },
     "autoload": {
         "psr-4": {"CubeTools\\CubeCommonBundle\\": "src/"}
