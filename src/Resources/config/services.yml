@@ -25,3 +25,5 @@ services:
         class: CubeTools\CubeCommonBundle\FileFormat\ExcelConverter
         arguments:
             - "@phpexcel"
+    cube_common.excel.reader:
+        class: CubeTools\CubeCommonBundle\FileFormat\ExcelReader
