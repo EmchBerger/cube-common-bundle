@@ -3,6 +3,7 @@
 namespace CubeTools\CubeCommonBundle\FileFormat;
 
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
@@ -25,14 +26,21 @@ class ExcelConverter
     /**
      * Convert html to excel file.
      *
-     * @param string|Crawler|\DomNode $html     Html to export
-     * @param string|null             $selector Css selector for part to export (like table or #id) , defaults to all
+     * @param string|Crawler|\DomNode|Response $html     Html to export
+     * @param string|null                      $selector Css selector for part to export (like table or #id), defaults to all
      *
      * @return \PHPExcel converted excel object (file)
      */
     public function fromHtml($html, $selector = null)
     {
         $cr = $htmlStr = null;
+        if ($html instanceof Response) {
+            if (!$html->isSuccessful()) {
+                $msg = 'Request for 1st argument of '.__METHOD__.' must be successful, check isSuccessful() first.';
+                throw new \LogicException($msg);
+            }
+            $html = $html->getContent();
+        }
         if (is_string($html)) {
             if (null === $selector) {
                 $htmlStr = $html;
@@ -52,7 +60,7 @@ class ExcelConverter
             $cr = $html;
         } else {
             $type = is_object($html) ? get_class($html) : get_type($html);
-            $msg = '1st argument must by string, Crawler or DOMNode, but is '.$type;
+            $msg = '1st argument must by string, Crawler, DOMNode or Response, but is '.$type;
             throw new \InvalidArgumentException($msg);
         }
 
