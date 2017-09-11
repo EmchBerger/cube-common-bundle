@@ -12,18 +12,18 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use CubeTools\CubeCommonBundle\DataHandling\DataConversion;
 
-class ColsSelectorController extends Controller
+class ColumnSelectorController extends Controller
 {
     private static $colsButtons = array();
 
     /**
-     * Renders the snippet to include for a ColsSelector button.
+     * Renders the snippet to include for a ColumnSelector button.
      */
     public function nearButtonAction($path, $btnId = '')
     {
         if (isset(self::$colsButtons[$btnId])) {
             ++self::$colsButtons[$btnId];
-            $reply = $this->render('CubeToolsCubeCommonBundle:ColsSelector:nearButtonDuplicateId.inc.html.twig', array(
+            $reply = $this->render('CubeToolsCubeCommonBundle:ColumnSelector:nearButtonDuplicateId.inc.html.twig', array(
                 'btnId' => $btnId,
             ));
         } else {
