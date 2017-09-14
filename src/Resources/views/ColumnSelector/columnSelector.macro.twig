@@ -1,6 +1,6 @@
 {% macro nearButton(id) %}
     {{ render(controller(
-        'CubeToolsCubeCommonBundle:ColsSelector:nearButton',
+        'CubeToolsCubeCommonBundle:ColumnSelector:nearButton',
         {'path': app.request.getPathInfo(), 'id': id|default('')}
     )) }}
 {% endmacro %}
@@ -20,7 +20,7 @@
                 console.warn('cubecommon.js is not imported!');
             } else {
                 cs.initializeColsSelection({{ render(controller(
-                    'CubeToolsCubeCommonBundle:ColsSelector:getTablesSettings',
+                    'CubeToolsCubeCommonBundle:ColumnSelector:getTablesSettings',
                     {'path': app.request.getPathInfo()}
                 )) }});
             }
