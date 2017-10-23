@@ -11,6 +11,21 @@ use Doctrine\Common\Persistence\ObjectManager;
 class DataDogAudit implements LogsInterface
 {
     /**
+     * key for subtable with deleted elements
+     */
+    const KEY_REMOVE = 'removed';
+
+    /**
+     * key for subtable with added elements
+     */
+    const KEY_ADD = 'added';
+
+    /**
+     * key for subtable with elements, which has not changed
+     */
+    const KEY_LEFT = 'left';
+
+    /**
      * @var \Doctrine\Common\Persistence\ObjectManager
      */
     protected $em;
@@ -86,13 +101,17 @@ class DataDogAudit implements LogsInterface
     protected function getCurrentVersionElement($currentVersion, $diffElement)
     {
         if ($currentVersion->getAction()=='associate') {
-            $diffElement[$this->getColumnNameForAssociation($currentVersion)][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+            $diffElement[$this->getColumnNameForAssociation($currentVersion)][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
         } else if ($currentVersion->getAction()=='dissociate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
-            if (!isset($diffElement[$columnName][$currentVersion->getTarget()->getFk()])) {
-                $diffElement[$columnName][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel() . ' (removed)'; // TODO: make removed as translation key
+            if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
             } else {    // when dissociate and associate on same element that means, that it was before
-                unset($diffElement[$columnName][$currentVersion->getTarget()->getFk()]);
+                unset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()]);
+                $diffElement[$columnName][self::KEY_LEFT][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+                if (empty($diffElement[$columnName][self::KEY_ADD])) {
+                    unset($diffElement[$columnName][self::KEY_ADD]);
+                }
             }
         } else {
             foreach ($currentVersion->getDiff() as $columnName => $diffValue) {
