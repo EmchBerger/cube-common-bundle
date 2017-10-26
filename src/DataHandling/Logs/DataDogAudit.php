@@ -62,7 +62,7 @@ class DataDogAudit implements LogsInterface
             if (!isset($diffArray[$versionKey])) {
                 $diffArray[$versionKey] = array();
             }
-            $diffArray[$versionKey] = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]);                    
+            $diffArray[$versionKey] = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]);
         }
 
         return $diffArray;
