@@ -41,7 +41,11 @@ class FilterSessionHelper
                 $form = $f;
                 $f = $form->getViewData();
                 if (self::isProbablyTetranzEntityData($f) && self::isTetranzEntityForm($form)) {
-                    $f = self::tetranzEntityDataToNormal($f);
+                    if (self::isTetranzMultiEntityForm($form)) {
+                        $f = self::tetranzEntityDataToNormal($f);
+                    } else {
+                        $f = self::tetranzSingleEntityDataToNormal($f);
+                    }
                 }
                 $filter[$n] = $f;
             }
@@ -222,6 +226,12 @@ class FilterSessionHelper
         return $form->getConfig()->hasOption('transformer') && $form->getConfig()->hasOption('class');
     }
 
+    private static function isTetranzMultiEntityForm(FormInterface $form)
+    {
+        return $form->getConfig()->getOption('multiple', false);
+    }
+
+
     /**
      * Convert tetranz_select2_entity view data, which has the ids as keys in view format.
      *
@@ -232,5 +242,21 @@ class FilterSessionHelper
     private static function tetranzEntityDataToNormal(array $viewData)
     {
         return array_keys($viewData);
+    }
+
+    /**
+     * Convert tetranz_select2_entity view data, which has the ids as keys in view format.
+     *
+     * @param string[] $viewData
+     *
+     * @return string
+     */
+    private static function tetranzSingleEntityDataToNormal(array $viewData)
+    {
+        $keys = array_keys($viewData);
+        if (count($keys)) {
+            return (string)$keys[0];
+        }
+        return '';
     }
 }
