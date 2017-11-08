@@ -16,11 +16,11 @@
     },
     "require-dev": {
         "cubetools/cube-common-develop": "dev-development@dev",
+        "liuggio/excelbundle": "~2.0",
+        "symfony/dom-crawler": "^3.3",
         "symfony/form": "^2.7|^3.0",
         "symfony/http-foundation": "^2.7|^3.0",
-        "symfony/phpunit-bridge": "^2.7|^3.0",
-        "symfony/dom-crawler": "^3.3",
-        "liuggio/excelbundle": "~2.0"
+        "symfony/phpunit-bridge": "^2.7|^3.0"
     },
     "suggest": {
         "symfony/form": "for Form\\*",
@@ -47,5 +47,8 @@
         "cube-post-install-update": [
             "[ -d vendor/cubetools/cube-common-develop ] && vendor/cubetools/cube-common-develop/src/Workplace/netbeans_config_cube.sh"
         ]
+    },
+    "config": {
+        "sort-packages": true
     }
 }

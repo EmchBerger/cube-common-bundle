@@ -1,0 +1,23 @@
+{% macro onSubmitJsReplaceDomains(dn_correction) %}
+    {#
+        To include in the submit js method. Replaces domain names.
+
+        The submit form must contain an input with the id "username".
+    #}
+    {% if dn_correction %}
+        var matches = $("#username").val().match(/^([^@]+)@(.*)$/);
+        if (matches) {
+          {% for origDomain, newDomain in dn_correction %}
+            {% if origDomain != '' %}
+              if ("{{ origDomain }}" === matches[2]) {
+                $("#username").val(matches[1] + "@{{ newDomain }}");
+              }
+            {% endif %}
+          {% endfor %}
+        } else {
+          {% if ldap_dn_correction['']|default(null) %}
+            $("#username").val($("#username").val() + "@{{ ldap_dn_correction[''] }}");
+          {% endif %}
+        }
+    {% endif %}
+{% endmacro %}
