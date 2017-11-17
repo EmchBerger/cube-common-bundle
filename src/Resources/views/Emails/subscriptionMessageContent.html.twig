@@ -1,0 +1,9 @@
+{% block content %}
+    <p>{{ introduction }}</p>
+    <ul>
+    {% for report in reports %}
+        <li><a href="{{ report.url }}">{{ report.title }}</a></li>
+    {% endfor %}
+    </ul>
+    <p>{{ footer }}</p>
+{% endblock %}
