@@ -129,7 +129,8 @@ class DevelopmentSupportController extends Controller
         if (!$userAgent) {
             $userAgent = 'XXbrowserXX';
         }
-        $msgBody = "\n\n<hr/>\n\nversion = ".$version.'  '.substr($verHash, 0, 8)."\nurl = ".$relatedUrl."\nbrowser = ".$userAgent;
+        $msgBody = "WRITE THE BUG DESCRIPTION HERE\n\n<hr/>\n\nversion = ".$version.'  '.substr($verHash, 0, 8).
+            "\nurl = ".$relatedUrl."\nbrowser = ".$userAgent;
         if ($reqInfo['profilerToken']) {
             $profilerUrl = $this->generateUrl(
                 '_profiler',
