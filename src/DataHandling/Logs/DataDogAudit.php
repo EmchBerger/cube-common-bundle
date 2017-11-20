@@ -58,6 +58,11 @@ class DataDogAudit implements LogsInterface
         foreach ($entityVersions as $currentVersion) {
             /* @var $currentVersion \DataDog\AuditBundle\Entity\AuditLog */
 
+            $blame = $currentVersion->getBlame();
+            if (is_null($blame)) {  // avoid showing changes from unlogged users
+                continue;
+            }
+
             $versionKey = $this->getVersionKey($currentVersion);
             if (!isset($diffArray[$versionKey])) {
                 $diffArray[$versionKey] = array();
