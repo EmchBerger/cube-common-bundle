@@ -130,14 +130,15 @@ class DevelopmentSupportController extends Controller
             $userAgent = 'XXbrowserXX';
         }
         $msgBody = "WRITE THE BUG DESCRIPTION HERE\n\n<hr/>\n\nversion = ".$version.'  '.substr($verHash, 0, 8).
-            "\nurl = ".$relatedUrl."\nbrowser = ".$userAgent;
+            "\nurl = ".$relatedUrl."\nbrowser = ".$userAgent."\nas user = ".$this->getUser().
+            "\nwith roles = ".implode(', ', $this->getRoles());
         if ($reqInfo['profilerToken']) {
             $profilerUrl = $this->generateUrl(
                 '_profiler',
                 array('token' => $reqInfo['profilerToken']),
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
-            $msgBody .= "\nprofiler: [".$reqInfo['profilerToken'].']('.$profilerUrl.')';
+            $msgBody .= "\nprofiler = [".$reqInfo['profilerToken'].']('.$profilerUrl.')';
         }
 
         return $msgBody;
@@ -151,5 +152,26 @@ class DevelopmentSupportController extends Controller
 
         return $githubProjectUrl.'/issues/new?HINT= SIGN IN! &title='.urlencode('['.$module.'] ').urlencode($title).
                 '&body='.urlencode($msgBody);
+    }
+
+    /**
+     * Get the current applied roles.
+     *
+     * This may differ from user->getRoles() because it is saved in the session.
+     *
+     * @return string[]
+     */
+    private function getRoles()
+    {
+        if ($this->get('security.token_storage')->getToken()) {
+            return array_map(
+                function ($roleObj) {
+                    return $roleObj->getRole();
+                },
+                $this->get('security.token_storage')->getToken()->getRoles()
+            );
+        } else {
+            return array();
+        }
     }
 }
