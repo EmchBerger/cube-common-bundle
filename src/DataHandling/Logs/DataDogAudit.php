@@ -23,7 +23,7 @@ class DataDogAudit implements LogsInterface
     /**
      * key for subtable with elements, which has not changed
      */
-    const KEY_LEFT = 'left';
+    const KEY_UNCHANGED = 'unchanged';
 
     /**
      * @var \Doctrine\Common\Persistence\ObjectManager
@@ -113,7 +113,7 @@ class DataDogAudit implements LogsInterface
                 $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
             } else {    // when dissociate and associate on same element that means, that it was before
                 unset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_LEFT][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
                 if (empty($diffElement[$columnName][self::KEY_ADD])) {
                     unset($diffElement[$columnName][self::KEY_ADD]);
                 }
