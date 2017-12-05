@@ -52,9 +52,10 @@ abstract class AbstractCondition
 
     /**
      * Method  checking, if condition is fulfilled.
+     *
      * @return boolean true, if condition is fulfilled
      */
-    abstract public function isConditionFulfilled(): bool;
+    abstract public function isConditionFulfilled();
 
     /**
      * Method returning data after condition checking.
