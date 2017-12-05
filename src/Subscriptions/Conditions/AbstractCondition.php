@@ -3,7 +3,7 @@ namespace CubeTools\CubeCommonBundle\Subscriptions\Conditions;
 
 use Doctrine\Common\Persistence\ObjectManager;
 
-/* 
+/**
  * Abstract class for subscription conditions.
  */
 abstract class AbstractCondition
@@ -29,7 +29,7 @@ abstract class AbstractCondition
     protected $filterData;
 
     /**
-     * @var array data with output after condition checking 
+     * @var array data with output after condition checking
      */
     protected $outputData = array();
 
@@ -46,6 +46,7 @@ abstract class AbstractCondition
     public function setFilterData($filterData)
     {
         $this->filterData = $filterData;
+
         return $this;
     }
 

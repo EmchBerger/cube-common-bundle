@@ -79,6 +79,7 @@ class MailSubscription
     public function setMessageContentGenerator($messageContentGenerator)
     {
         $this->messageContentGenerator = $messageContentGenerator;
+
         return $this;
     }
 
@@ -90,6 +91,7 @@ class MailSubscription
     public function setMessageParticipantsGenerator($messageParticipantsGenerator)
     {
         $this->messageParticipantsGenerator = $messageParticipantsGenerator;
+
         return $this;
     }
 
@@ -151,7 +153,7 @@ class MailSubscription
             $reportsArray = array();
 
             foreach ($this->reports as $report) {
-                $reportsArray = array_merge($reportsArray, 
+                $reportsArray = array_merge($reportsArray,
                     $report->getReportArray(
                         $this->condition->getOutputData()
                     )
