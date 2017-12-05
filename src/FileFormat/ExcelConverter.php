@@ -117,7 +117,6 @@ class ExcelConverter
         $response = $excelSrvc->createStreamedResponse($xlWr);
         $headers = $response->headers;
         $headers->set('Content-Type', $contentType.'; charset=utf-8');
-        $headers->set('Pragma', 'public');
         $headers->set('Content-Disposition', $headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
             $filename
