@@ -17,7 +17,7 @@ class UserSettingsStorage
     private $em;
 
     /**
-     * @var Ebbe\TestManager\UserBundle\Entity\User
+     * @var \Symfony\Component\Security\Core\User\UserInterface
      */
     private $user;
 
@@ -47,7 +47,7 @@ class UserSettingsStorage
      * @param string $type
      * @param string $settingId
      *
-     * @return any
+     * @return mixed
      */
     public function getUserSetting($type, $settingId)
     {
@@ -64,9 +64,9 @@ class UserSettingsStorage
      *
      * @param string $type
      * @param string $settingId
-     * @param any    $settings
+     * @param mixed  $settings
      *
-     * @return UserSettingStorage
+     * @return self $this
      */
     public function setUserSetting($type, $settingId, $settings)
     {
@@ -90,7 +90,7 @@ class UserSettingsStorage
      * @param string $type
      * @param string $settingId
      *
-     * @return type
+     * @return mixed
      */
     private function getEntity($type, $settingId)
     {
