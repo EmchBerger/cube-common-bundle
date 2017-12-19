@@ -70,7 +70,7 @@ class DataDogAudit implements LogsInterface
             $diffArray[$versionKey] = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]);
         }
 
-        return $diffArray;
+        return $this->removeColumnIfOnlyUnchanged($diffArray);
     }
 
     /**
@@ -125,6 +125,27 @@ class DataDogAudit implements LogsInterface
         }
 
         return $this->filterVersionElement($currentVersion, $diffElement);
+    }
+
+    /**
+     * Method removes columns, for which changes stays only in unchanged key.
+     * @param array $diffArray subsequent elements are diff for each version
+     * @return array subsequent elements are diff for each version, filtered
+     */
+    protected function removeColumnIfOnlyUnchanged($diffArray)
+    {
+        foreach ($diffArray as $versionKey => $versionValue) {
+            foreach ($versionValue as $columnName => $columnValues) {
+                if (is_array($diffArray[$versionKey][$columnName])
+                        && isset($diffArray[$versionKey][$columnName][self::KEY_UNCHANGED])
+                        && !isset($diffArray[$versionKey][$columnName][self::KEY_ADD])
+                        && !isset($diffArray[$versionKey][$columnName][self::KEY_REMOVE])) {
+                    unset($diffArray[$versionKey][$columnName]);
+                }
+            }
+        }
+
+        return $diffArray;
     }
 
     /**
