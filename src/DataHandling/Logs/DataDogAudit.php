@@ -26,7 +26,7 @@ class DataDogAudit implements LogsInterface
     const KEY_UNCHANGED = 'unchanged';
 
     /**
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var ObjectManager
      */
     protected $em;
 
@@ -36,8 +36,9 @@ class DataDogAudit implements LogsInterface
     }
 
     /**
-     * Method for getting all versions of given entity.
-     * @param Object $entity entity for which we want to get all versions
+     * Method for getting AuditLog of all versions of given entity.
+     *
+     * @param object $entity entity for which we want to get all versions
      *
      * @return AuditLog[] versions of entity
      */
@@ -46,19 +47,15 @@ class DataDogAudit implements LogsInterface
         return $this->em->getRepository(AuditLog::class)->findBy(array('source' => $this->getAssociations($entity)), array('id' => 'ASC'));
     }
 
-    /**
-     * Method for getting diff array for given entity for all versions (changes between subsequent versions).
-     * @param Object $entity object with entity
-     * @return array subsequent elements are diff for each version
-     */
     public function getAllVersionsDiffArray($entity)
     {
+        // doc is in interface
+
         $entityVersions = $this->getAllVersions($entity);
         $diffArray = array();
 
+        /** @var AuditLog $currentVersion */
         foreach ($entityVersions as $currentVersion) {
-            /* @var $currentVersion \DataDog\AuditBundle\Entity\AuditLog */
-
             $blame = $currentVersion->getBlame();
             if (is_null($blame)) {  // avoid showing changes from unlogged users
                 continue;
@@ -76,19 +73,24 @@ class DataDogAudit implements LogsInterface
 
     /**
      * Method for getting associations for given entity.
-     * @param Object $entity object with entity
+     *
+     * @param object $entity object with entity
+     *
      * @return array entities
      */
     protected function getAssociations($entity)
     {
         $associations = $this->em->getRepository(Association::class)->findBy(array('class' => get_class($entity), 'fk' => $entity->getId()));
+
         return $associations;
     }
 
     /**
      * Method creating version key (to group table entries associated with the same user action).
-     * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion entity for which version key is created
-     * @param array $diffArray subsequent elements are diff for each version
+     *
+     * @param AuditLog $currentVersion entity for which version key is created
+     * @param array    $diffArray      subsequent elements are diff for each version
+     *
      * @return string version key (timestamp and user id)
      */
     protected function getVersionKey(AuditLog $currentVersion, $diffArray)
@@ -115,8 +117,10 @@ class DataDogAudit implements LogsInterface
 
     /**
      * Method creating diff for given log entry.
-     * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion
-     * @param array $diffElement current state of diff for this version (one version can consist of more then one log entry)
+     *
+     * @param AuditLog $currentVersion
+     * @param array    $diffElement    current state of diff for this version (one version can consist of more then one log entry)
+     *
      * @return array diff element for given version
      */
     protected function getCurrentVersionElement(AuditLog $currentVersion, array $diffElement)
@@ -145,7 +149,9 @@ class DataDogAudit implements LogsInterface
 
     /**
      * Method removes columns, for which changes stays only in unchanged key.
+     *
      * @param array $diffArray subsequent elements are diff for each version
+     *
      * @return array subsequent elements are diff for each version, filtered
      */
     protected function removeColumnIfOnlyUnchanged($diffArray)
@@ -166,8 +172,10 @@ class DataDogAudit implements LogsInterface
 
     /**
      * Method for getting key storing information about given on input column name with association. Can be override for customization needs.
-     * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion
-     * @return string name 
+     *
+     * @param AuditLog $currentVersion
+     *
+     * @return string name
      */
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
@@ -176,8 +184,10 @@ class DataDogAudit implements LogsInterface
 
     /**
      * Method for filtering diff element. Can be override for customization needs.
-     * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion
-     * @param array $diffElement
+     *
+     * @param AuditLog $currentVersion
+     * @param array    $diffElement
+     *
      * @return array filtered diff element
      */
     protected function filterVersionElement(AuditLog $currentVersion, array $diffElement)
