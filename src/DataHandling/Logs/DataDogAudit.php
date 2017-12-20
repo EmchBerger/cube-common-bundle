@@ -63,14 +63,14 @@ class DataDogAudit implements LogsInterface
                 continue;
             }
 
-            $versionKey = $this->getVersionKey($currentVersion);
+            $versionKey = $this->getVersionKey($currentVersion, $diffArray);
             if (!isset($diffArray[$versionKey])) {
                 $diffArray[$versionKey] = array();
             }
             $diffArray[$versionKey] = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]);
         }
 
-        return $diffArray;
+        return $this->removeColumnIfOnlyUnchanged($diffArray);
     }
 
     /**
@@ -87,13 +87,28 @@ class DataDogAudit implements LogsInterface
     /**
      * Method creating version key (to group table entries associated with the same user action).
      * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion entity for which version key is created
+     * @param array $diffArray subsequent elements are diff for each version
      * @return string version key (timestamp and user id)
      */
-    protected function getVersionKey($currentVersion)
+    protected function getVersionKey($currentVersion, $diffArray)
     {
         $versionTimestamp = $currentVersion->getLoggedAt()->getTimestamp();
+        $versionTimestampBefore = $currentVersion->getLoggedAt()->getTimestamp() - 1; // 1 second before by the same user
+        $versionTimestampAfter = $currentVersion->getLoggedAt()->getTimestamp() + 1; // 1 second after by the same user
+
         $versionUser = $currentVersion->getBlame()->getFk();
-        $versionKey = sprintf('%d_%d', $versionTimestamp, $versionUser); // having user and time prevent from logging in the same place simoultaneus changes from more then one user
+        $versionKeyNormal = sprintf('%d_%d', $versionTimestamp, $versionUser); // having user and time prevent from logging in the same place simoultaneus changes from more then one user
+        $versionKeyBefore = sprintf('%d_%d', $versionTimestampBefore, $versionUser);
+        $versionKeyAfter = sprintf('%d_%d', $versionTimestampAfter, $versionUser);
+
+        if (isset($diffArray[$versionKeyBefore])) {
+            $versionKey = $versionKeyBefore;
+        } else if (isset($diffArray[$versionKeyAfter])) {
+            $versionKey = $versionKeyAfter;
+        } else {
+            $versionKey = $versionKeyNormal;
+        }
+
         return $versionKey;
     }
 
@@ -125,6 +140,27 @@ class DataDogAudit implements LogsInterface
         }
 
         return $this->filterVersionElement($currentVersion, $diffElement);
+    }
+
+    /**
+     * Method removes columns, for which changes stays only in unchanged key.
+     * @param array $diffArray subsequent elements are diff for each version
+     * @return array subsequent elements are diff for each version, filtered
+     */
+    protected function removeColumnIfOnlyUnchanged($diffArray)
+    {
+        foreach ($diffArray as $versionKey => $versionValue) {
+            foreach ($versionValue as $columnName => $columnValues) {
+                if (is_array($diffArray[$versionKey][$columnName])
+                        && isset($diffArray[$versionKey][$columnName][self::KEY_UNCHANGED])
+                        && !isset($diffArray[$versionKey][$columnName][self::KEY_ADD])
+                        && !isset($diffArray[$versionKey][$columnName][self::KEY_REMOVE])) {
+                    unset($diffArray[$versionKey][$columnName]);
+                }
+            }
+        }
+
+        return $diffArray;
     }
 
     /**
