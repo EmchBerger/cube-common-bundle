@@ -79,7 +79,7 @@ class DataDogAudit implements LogsInterface
      *
      * @return string version key (timestamp and user id)
      */
-    protected function getVersionKey(AuditLog $currentVersion, $diffArray)
+    protected function getVersionKey(AuditLog $currentVersion, array $diffArray)
     {
         $versionTimestamp = $currentVersion->getLoggedAt()->getTimestamp();
 
@@ -138,7 +138,7 @@ class DataDogAudit implements LogsInterface
      *
      * @return array subsequent elements are diff for each version, filtered
      */
-    protected function removeColumnIfOnlyUnchanged($diffArray)
+    protected function removeColumnIfOnlyUnchanged(array $diffArray)
     {
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue) as $columnName) {
