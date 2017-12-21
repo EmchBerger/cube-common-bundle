@@ -1,4 +1,5 @@
 <?php
+
 namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 
 use DataDog\AuditBundle\Entity\AuditLog;
@@ -91,7 +92,7 @@ class DataDogAudit implements LogsInterface
 
         if (isset($diffArray[$versionKeyBefore])) {
             $versionKey = $versionKeyBefore;
-        } else if (isset($diffArray[$versionKeyAfter])) {
+        } elseif (isset($diffArray[$versionKeyAfter])) {
             $versionKey = $versionKeyAfter;
         } else {
             $versionKey = $versionKeyNormal;
@@ -110,9 +111,9 @@ class DataDogAudit implements LogsInterface
      */
     protected function getCurrentVersionElement(AuditLog $currentVersion, array $diffElement)
     {
-        if ($currentVersion->getAction()=='associate') {
+        if ($currentVersion->getAction() === 'associate') {
             $diffElement[$this->getColumnNameForAssociation($currentVersion)][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
-        } else if ($currentVersion->getAction()=='dissociate') {
+        } elseif ($currentVersion->getAction() === 'dissociate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
             if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
                 $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
