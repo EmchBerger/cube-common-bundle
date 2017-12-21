@@ -82,13 +82,11 @@ class DataDogAudit implements LogsInterface
     protected function getVersionKey(AuditLog $currentVersion, $diffArray)
     {
         $versionTimestamp = $currentVersion->getLoggedAt()->getTimestamp();
-        $versionTimestampBefore = $currentVersion->getLoggedAt()->getTimestamp() - 1; // 1 second before by the same user
-        $versionTimestampAfter = $currentVersion->getLoggedAt()->getTimestamp() + 1; // 1 second after by the same user
 
         $versionUser = $currentVersion->getBlame()->getFk();
         $versionKeyNormal = sprintf('%d_%d', $versionTimestamp, $versionUser); // having user and time prevent from logging in the same place simoultaneus changes from more then one user
-        $versionKeyBefore = sprintf('%d_%d', $versionTimestampBefore, $versionUser);
-        $versionKeyAfter = sprintf('%d_%d', $versionTimestampAfter, $versionUser);
+        $versionKeyBefore = sprintf('%d_%d', $versionTimestamp - 1, $versionUser); // 1 second before by the same user
+        $versionKeyAfter = sprintf('%d_%d', $versionTimestamp + 1, $versionUser); // 1 second after by the same user
 
         if (isset($diffArray[$versionKeyBefore])) {
             $versionKey = $versionKeyBefore;
@@ -143,11 +141,13 @@ class DataDogAudit implements LogsInterface
     protected function removeColumnIfOnlyUnchanged($diffArray)
     {
         foreach ($diffArray as $versionKey => $versionValue) {
-            foreach ($versionValue as $columnName => $columnValues) {
-                if (is_array($diffArray[$versionKey][$columnName])
-                        && isset($diffArray[$versionKey][$columnName][self::KEY_UNCHANGED])
-                        && !isset($diffArray[$versionKey][$columnName][self::KEY_ADD])
-                        && !isset($diffArray[$versionKey][$columnName][self::KEY_REMOVE])) {
+            foreach (array_keys($versionValue) as $columnName) {
+                $currentElement = $diffArray[$versionKey][$columnName];
+                if (is_array($currentElement)
+                        && isset($currentElement[self::KEY_UNCHANGED])
+                        && !isset($currentElement[self::KEY_ADD])
+                        && !isset($currentElement[self::KEY_REMOVE])
+                ) {
                     unset($diffArray[$versionKey][$columnName]);
                 }
             }
