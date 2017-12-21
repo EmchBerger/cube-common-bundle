@@ -11,21 +11,6 @@ use Doctrine\Common\Persistence\ObjectManager;
 class DataDogAudit implements LogsInterface
 {
     /**
-     * key for subtable with deleted elements
-     */
-    const KEY_REMOVE = 'removed';
-
-    /**
-     * key for subtable with added elements
-     */
-    const KEY_ADD = 'added';
-
-    /**
-     * key for subtable with elements, which has not changed
-     */
-    const KEY_UNCHANGED = 'unchanged';
-
-    /**
      * @var ObjectManager
      */
     protected $em;
