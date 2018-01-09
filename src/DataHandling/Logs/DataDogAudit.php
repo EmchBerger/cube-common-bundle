@@ -42,11 +42,6 @@ class DataDogAudit implements LogsInterface
 
         /** @var AuditLog $currentVersion */
         foreach ($entityVersions as $currentVersion) {
-            $blame = $currentVersion->getBlame();
-            if (is_null($blame)) {  // avoid showing changes from unlogged users
-                continue;
-            }
-
             $versionKey = $this->getVersionKey($currentVersion, $diffArray);
             if (!isset($diffArray[$versionKey])) {
                 $diffArray[$versionKey] = array();
@@ -83,7 +78,7 @@ class DataDogAudit implements LogsInterface
     {
         $versionTimestamp = $currentVersion->getLoggedAt()->getTimestamp();
 
-        $versionUser = $currentVersion->getBlame()->getFk();
+        $versionUser = $currentVersion->getBlame() ? $currentVersion->getBlame()->getFk() : -1;
         $versionKeyNormal = sprintf('%d_%d', $versionTimestamp, $versionUser); // having user and time prevent from logging in the same place simoultaneus changes from more then one user
         $versionKeyBefore = sprintf('%d_%d', $versionTimestamp - 1, $versionUser); // 1 second before by the same user
         $versionKeyAfter = sprintf('%d_%d', $versionTimestamp + 1, $versionUser); // 1 second after by the same user
