@@ -22,10 +22,17 @@ interface LogsInterface
     /**
      * Method for getting diff array for given entity for all versions (changes between subsequent versions).
      *
+     * Newest changes are returned first.
+     *
      * return value:
      * [
      *     $editId1 => [
-     *         $attrName => $anyValue
+     *         'changes' => [
+     *             $attrName1 => $anyValue,
+     *             $attrName2 => ...,
+     *         ],
+     *         'savedBy'  => $nameOfUser,
+     *         'savedAt'  => $dateTime,
      *     ],
      *     $editId2 => ...
      * ]
@@ -37,12 +44,12 @@ interface LogsInterface
      *   [
      *      KEY_REMOVED   => [$removed, $elements, ...],
      *      KEY_ADDED     => [$added, $elements, ...],
-     *      KEY_UNCHANGED => [$unchanged, $elements, ...],
+     *      KEY_UNCHANGED => [$unchanged, $elements, ...], // optional!
      *    ]
      *
      * @param object $entity entity for which we want to get the log
      *
      * @return array subsequent elements are diff for each version
      */
-    public function getAllVersionsDiffArray($entity);
+    public function getAllVersionsDiff($entity);
 }

@@ -33,7 +33,25 @@ class DataDogAudit implements LogsInterface
         return $this->em->getRepository(AuditLog::class)->findBy(array('source' => $this->getAssociations($entity)), array('id' => 'ASC'));
     }
 
+    /**
+     * @deprecated since version 1.0.19
+     *
+     * @param object $entity
+     *
+     * @return mixed[]
+     */
     public function getAllVersionsDiffArray($entity)
+    {
+        @trigger_error('getAllVersionsDiffArray() is deprecated since version 1.0.19. Use getAllVersionsDiff instead.', E_USER_DEPRECATED);
+        $versions = array();
+        foreach ($this->getAllVersionsDiff($entity) as $verKey => $value) {
+            $versions[$verKey] = $value['changes'];
+        }
+
+        return $versions;
+    }
+
+    public function getAllVersionsDiff($entity)
     {
         // doc is in interface
 
@@ -44,9 +62,14 @@ class DataDogAudit implements LogsInterface
         foreach ($entityVersions as $currentVersion) {
             $versionKey = $this->getVersionKey($currentVersion, $diffArray);
             if (!isset($diffArray[$versionKey])) {
-                $diffArray[$versionKey] = array();
+                $diffArray[$versionKey] = array(
+                    'changes' => array(),
+                    'savedBy' => $currentVersion->getBlame() ? $currentVersion->getBlame()->getLabel() : '',
+                    'savedAt' => $currentVersion->getLoggedAt(),
+                );
             }
-            $diffArray[$versionKey] = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]);
+            $changes = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]['changes']);
+            $diffArray[$versionKey]['changes'] = $changes;
         }
 
         return $this->removeColumnIfOnlyUnchanged($diffArray);
@@ -136,14 +159,14 @@ class DataDogAudit implements LogsInterface
     protected function removeColumnIfOnlyUnchanged(array $diffArray)
     {
         foreach ($diffArray as $versionKey => $versionValue) {
-            foreach (array_keys($versionValue) as $columnName) {
-                $currentElement = $diffArray[$versionKey][$columnName];
+            foreach (array_keys($versionValue['changes']) as $columnName) {
+                $currentElement = $diffArray[$versionKey]['changes'][$columnName];
                 if (is_array($currentElement)
                         && isset($currentElement[self::KEY_UNCHANGED])
                         && !isset($currentElement[self::KEY_ADD])
                         && !isset($currentElement[self::KEY_REMOVE])
                 ) {
-                    unset($diffArray[$versionKey][$columnName]);
+                    unset($diffArray[$versionKey]['changes'][$columnName]);
                 }
             }
         }
