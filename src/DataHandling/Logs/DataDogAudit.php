@@ -38,7 +38,8 @@ class DataDogAudit implements LogsInterface
     /**
      * Method for getting all versions of given entity.
      * @param Object $entity entity for which we want to get all versions
-     * @return array versions of entity
+     *
+     * @return AuditLog[] versions of entity
      */
     public function getAllVersions($entity)
     {
