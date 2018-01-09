@@ -30,7 +30,17 @@ class DataDogAudit implements LogsInterface
      */
     public function getAllVersions($entity)
     {
-        return $this->em->getRepository(AuditLog::class)->findBy(array('source' => $this->getAssociations($entity)), array('id' => 'ASC'));
+        $class = get_class($entity);
+        $id = $entity;
+
+        return $this->em->getRepository(AuditLog::class)
+            ->createQueryBuilder('a')
+            ->join('a.source', 's')
+            ->where('s.fk = :entity')->setParameter('entity', $id)
+            ->andWhere('s.class = :class')->setParameter('class', $class)
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()->getResult()
+        ;
     }
 
     /**
@@ -77,20 +87,6 @@ class DataDogAudit implements LogsInterface
         }
 
         return $this->removeColumnIfOnlyUnchanged($diffArray);
-    }
-
-    /**
-     * Method for getting associations for given entity.
-     *
-     * @param object $entity object with entity
-     *
-     * @return array entities
-     */
-    protected function getAssociations($entity)
-    {
-        $associations = $this->em->getRepository(Association::class)->findBy(array('class' => get_class($entity), 'fk' => $entity->getId()));
-
-        return $associations;
     }
 
     /**
