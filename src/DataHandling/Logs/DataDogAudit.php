@@ -24,11 +24,13 @@ class DataDogAudit implements LogsInterface
     /**
      * Method for getting AuditLog of all versions of given entity.
      *
+     * Result is ordered with oldest changes first.
+     *
      * @param object $entity entity for which we want to get all versions
      *
-     * @return AuditLog[] versions of entity
+     * @return \Doctrine\ORM\QueryBuilder
      */
-    public function getAllVersions($entity)
+    protected function getAllVersionsQb($entity)
     {
         $class = get_class($entity);
         $id = $entity;
@@ -39,7 +41,6 @@ class DataDogAudit implements LogsInterface
             ->where('s.fk = :entity')->setParameter('entity', $id)
             ->andWhere('s.class = :class')->setParameter('class', $class)
             ->orderBy('a.id', 'ASC')
-            ->getQuery()->getResult()
         ;
     }
 
@@ -65,7 +66,7 @@ class DataDogAudit implements LogsInterface
     {
         // doc is in interface
 
-        $entityVersions = $this->getAllVersions($entity);
+        $entityVersions = $this->getAllVersionsQb($entity)->getQuery()->getResult();
         $diffArray = array();
 
         /** @var AuditLog $currentVersion */
