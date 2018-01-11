@@ -90,7 +90,7 @@ class DataDogAudit implements LogsInterface
      * @param array $diffArray subsequent elements are diff for each version
      * @return string version key (timestamp and user id)
      */
-    protected function getVersionKey($currentVersion, $diffArray)
+    protected function getVersionKey(AuditLog $currentVersion, $diffArray)
     {
         $versionTimestamp = $currentVersion->getLoggedAt()->getTimestamp();
         $versionTimestampBefore = $currentVersion->getLoggedAt()->getTimestamp() - 1; // 1 second before by the same user
@@ -118,7 +118,7 @@ class DataDogAudit implements LogsInterface
      * @param array $diffElement current state of diff for this version (one version can consist of more then one log entry)
      * @return array diff element for given version
      */
-    protected function getCurrentVersionElement($currentVersion, $diffElement)
+    protected function getCurrentVersionElement(AuditLog $currentVersion, array $diffElement)
     {
         if ($currentVersion->getAction()=='associate') {
             $diffElement[$this->getColumnNameForAssociation($currentVersion)][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
@@ -168,7 +168,7 @@ class DataDogAudit implements LogsInterface
      * @param \DataDog\AuditBundle\Entity\AuditLog $currentVersion
      * @return string name 
      */
-    protected function getColumnNameForAssociation($currentVersion)
+    protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
         return $currentVersion->getTarget()->getTbl();
     }
@@ -179,7 +179,7 @@ class DataDogAudit implements LogsInterface
      * @param array $diffElement
      * @return array filtered diff element
      */
-    protected function filterVersionElement($currentVersion, $diffElement)
+    protected function filterVersionElement(AuditLog $currentVersion, array $diffElement)
     {
         return $diffElement;
     }
