@@ -12,6 +12,8 @@ use Doctrine\ORM\QueryBuilder;
  */
 class DataDogAudit implements LogsInterface
 {
+    use LogsFunctionsTrait;
+
     const TEMP_KEY_READD = 'temp_readd';
     const TEMP_KEY_OLDVAL = 'temp_oldval';
 
@@ -123,6 +125,19 @@ class DataDogAudit implements LogsInterface
         }
 
         return $this->removeColumnIfOnlyUnchanged($diffArray);
+    }
+
+    public function getVersionsOfProperty($entity, $columnName)
+    {
+        // doc is in interface
+
+        $allVer = $this->getAllVersionsDiff($entity);
+        /*
+         * Could filter in db, but some properties are in diff, some are in an association.
+         * And only for associations: $columnName = $this->getColumnNameForAssociation($propertyName);
+         */
+
+        return $this->filterLogForOneProperty($allVer, $columnName);
     }
 
     /**
