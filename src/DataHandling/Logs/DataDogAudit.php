@@ -69,7 +69,11 @@ class DataDogAudit implements LogsInterface
                 );
             }
             $changes = $this->getCurrentVersionElement($currentVersion, $diffArray[$versionKey]['changes']);
-            $diffArray[$versionKey]['changes'] = $changes;
+            if ($changes) {
+                $diffArray[$versionKey]['changes'] = $changes;
+            } else {
+                unset($diffArray[$versionKey]);
+            }
         }
 
         return $this->removeColumnIfOnlyUnchanged($diffArray);
