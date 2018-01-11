@@ -72,4 +72,22 @@ interface LogsInterface
      * @return array same result as with getAllVersionsDiff, but only containing changes of one property
      */
     public function getVersionsOfProperty($entity, $columnName);
+
+    /**
+     * Tells when the entity was created and who did it.
+     *
+     * @param object $entity
+     *
+     * @return mixed[] ['savedBy' => $nameOfUser, 'savedAt' => $dateTime]
+     */
+    public function getFirstBlame($entity);
+
+    /**
+     * Tells when the entity was edited last and who did it.
+     *
+     * @param object $entity
+     *
+     * @return mixed[] ['savedBy' => $nameOfUser, 'savedAt' => $dateTime]
+     */
+    public function getLastBlame($entity);
 }

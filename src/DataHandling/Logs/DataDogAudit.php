@@ -65,6 +65,32 @@ class DataDogAudit extends AbstractBaseAudit
         ;
     }
 
+    public function getLastBlame($entity)
+    {
+        // doc is in interface
+
+        $qb = $this->getAllVersionsQb($entity);
+        $currentVersion = $qb->limit(1)->getQuery()->getResult();
+
+        return array(
+            'savedBy' => $currentVersion->getBlame() ? $currentVersion->getBlame()->getLabel() : '',
+            'savedAt' => $currentVersion->getLoggedAt(),
+        );
+    }
+
+    public function getFirstBlame($entity)
+    {
+        // doc is in interface
+
+        $qb = $this->getAllVersionsQb($entity);
+        $currentVersion = $qb->orderBy('a.id', 'DESC')->limit(1)->getQuery()->getResult();
+
+        return array(
+            'savedBy' => $currentVersion->getBlame() ? $currentVersion->getBlame()->getLabel() : '',
+            'savedAt' => $currentVersion->getLoggedAt(),
+        );
+    }
+
     /**
      * @deprecated since version 1.0.19
      *
