@@ -101,7 +101,15 @@ class ProjectVersionGit
         } elseif ('ref: ' === substr($refFile, 0, 5)) {
             // reference
             $refFile = $gitDir.rtrim(substr($refFile, 5));
-            $resources = array(new FileResource($headFile), new FileResource($refFile));
+            if (file_exists($refFile)) {
+                $resources = array(new FileResource($headFile), new FileResource($refFile));
+            } else {// reference is in packed-refs
+                $resources = array(
+                    new FileResource($headFile),
+                    new FileExistenceResource($refFile),
+                    new FileResource($gitDir.'packed-refs'),
+                );
+            }
             $data = $this->queryGitData();
         } else {
             // hash or unknown
