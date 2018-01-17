@@ -67,6 +67,19 @@ class DataDogAudit implements LogsInterface
         // doc is in interface
 
         $entityVersions = $this->getAllVersionsQb($entity)->getQuery()->getResult();
+
+        return $this->auditLogToDiff($entityVersions);
+    }
+
+    /**
+     * Creates the diff format from related AuditLogs.
+     *
+     * @param AuditLog[]|\Iterable $entityVersions
+     *
+     * @return mixed[] {@see getAllVersionsDiff()}
+     */
+    protected function auditLogToDiff($entityVersions)
+    {
         $diffArray = array();
 
         /** @var AuditLog $currentVersion */
