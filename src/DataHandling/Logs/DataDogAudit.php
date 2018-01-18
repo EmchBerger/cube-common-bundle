@@ -160,7 +160,12 @@ class DataDogAudit implements LogsInterface
             }
         } else {
             foreach ($currentVersion->getDiff() as $columnName => $diffValue) {
-                $diffElement[$columnName] = $diffValue['new'];
+                if (isset($diffValue['new']['label'])) {
+                    // ManyToOne relation has changed
+                    $diffElement[$columnName] = $diffValue['new']['label'];
+                } else {
+                    $diffElement[$columnName] = $diffValue['new'];
+                }
             }
         }
 
