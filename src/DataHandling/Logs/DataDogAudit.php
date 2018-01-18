@@ -155,14 +155,17 @@ class DataDogAudit implements LogsInterface
     protected function getCurrentVersionElement(AuditLog $currentVersion, array $diffElement)
     {
         if ($currentVersion->getAction() === 'associate') {
-            $diffElement[$this->getColumnNameForAssociation($currentVersion)][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $label = $this->getLabelForAssociation($currentVersion->getTarget());
+            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
         } elseif ($currentVersion->getAction() === 'dissociate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $label = $this->getLabelForAssociation($currentVersion->getTarget());
             if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $label;
             } else {    // when dissociate and associate on same element that means, that it was before
                 unset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $currentVersion->getTarget()->getLabel();
+                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
                 if (empty($diffElement[$columnName][self::KEY_ADD])) {
                     unset($diffElement[$columnName][self::KEY_ADD]);
                 }
@@ -231,6 +234,11 @@ class DataDogAudit implements LogsInterface
         }
 
         throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
+    }
+
+    protected function getLabelForAssociation(Association $ass)
+    {
+        return $ass->getLabel();
     }
 
     /**
