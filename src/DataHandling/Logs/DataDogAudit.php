@@ -17,6 +17,11 @@ class DataDogAudit implements LogsInterface
      */
     protected $em;
 
+    /**
+     * @var mixed[] cached data for current entity type
+     */
+    protected $cache;
+
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
@@ -35,6 +40,10 @@ class DataDogAudit implements LogsInterface
     {
         $class = get_class($entity);
         $id = $entity;
+
+        if ($class !== $this->cache['class']) {
+            $this->cache = array('class' => $class);
+        }
 
         return $this->em->getRepository(AuditLog::class)
             ->createQueryBuilder('a')
@@ -206,7 +215,22 @@ class DataDogAudit implements LogsInterface
      */
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
-        return $currentVersion->getTarget()->getTbl();
+        $joinTableName = $currentVersion->getTbl();
+        if (isset($this->cache['assocTable'][$joinTableName])) {
+            return $this->cache['assocTable'][$joinTableName];
+        }
+
+        foreach ($this->getEntitiesClassMetaData()->getAssociationMappings() as $assMapping) {
+            if (isset($assMapping['joinTable'])) {
+                $assJoinTable = $assMapping['joinTable']['name'];
+                $this->cache['assocTable'][$assJoinTable] = $assMapping['fieldName'];
+                if ($joinTableName === $assJoinTable) {
+                    return $assMapping['fieldName'];
+                }
+            }
+        }
+
+        throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
     }
 
     /**
@@ -220,5 +244,15 @@ class DataDogAudit implements LogsInterface
     protected function filterVersionElement(AuditLog $currentVersion, array $diffElement)
     {
         return $diffElement;
+    }
+
+    /**
+     * Returns doctrines metadata for the main entity.
+     *
+     * @return \Doctrine\ORM\Mapping\ClassMetadata
+     */
+    private function getEntitiesClassMetaData()
+    {
+        return $this->em->getClassMetadata($this->cache['class']);
     }
 }
