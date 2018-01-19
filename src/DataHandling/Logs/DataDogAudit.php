@@ -306,6 +306,81 @@ class DataDogAudit implements LogsInterface
     }
 
     /**
+     * Get data for attributes the entity is not the owning side.
+     *
+     * @param object    $entity               doctrine entity object
+     * @param string    $attribute            name of attribute to get
+     * @param mixed[][] $additionalConditions array(array('attr' => attrName, 'value' => value), ...)
+     *
+     * @return array array('class'=> classOfAttribute, 'ids' => array(id1, id2, ...))
+     */
+    protected function getInverseSideAttributeIds($entity, $attribute, $additionalConditions = array())
+    {
+        $entId = $entity->getId();
+        $entClass = get_class($entity);
+
+        $entMeta = $this->em->getClassMetadata($entClass);
+        if (isset($entMeta->getAssociationMapping($attribute)['joinTable'])) {
+            throw new \LogicException(sprintf(
+                'ManyToMany associations (for attribute %s) are not supported by this method',
+                $attribute
+            ));
+        }
+        $attrClass = $entMeta->getAssociationMapping($attribute)['targetEntity'];
+        $entInAttr = $entMeta->getAssociationMapping($attribute)['mappedBy'];
+        $entClassJson = json_encode($entClass);
+
+        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al')
+            ->join('al.source', 's')
+            ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
+            ->andWhere("al.action = 'insert'")
+            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
+            ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
+            ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
+        ;
+        $i = 1;
+        foreach ($additionalConditions as $condition) {
+            $condValue = json_encode($condition['value']);
+            $qb->andWhere('al.diff LIKE :diffLike'.$i)->setParameter('diffLike'.$i, '%"'.$condition['attr'].'"%"new":'.$condValue.'%');
+            ++$i;
+        }
+        $candidates = $qb->getQuery()->getResult();
+        /// checking real values
+        $matchingIds = array();
+        /** @var AuditLog $candidate */
+        foreach ($candidates as $candidate) {
+            $diff = $candidate->getDiff();
+            if ($diff[$entInAttr]['new']['fk'] != $entId) {
+                continue; // wrong id => next candidate
+            }
+            foreach ($additionalConditions as $condition) {
+                if ($condition['value'] !== $diff[$condition['attr']]['new']) {
+                    continue 2; // condition not fulfilled => next candidate
+                }
+            }
+            $matchingIds[] = $candidate->getSource()->getFk();
+        }
+
+        return array('class' => $attrClass, 'ids' => $matchingIds);
+    }
+
+    /**
+     * Extends the QueryBuilder from getAllVersionsQb with logs of attributes the entity is not the owning side.
+     *
+     * @param QueryBuilder $qb
+     * @param string       $attributeClass probably ->getInverseSideAttributeIds()['class']
+     * @param int[]        $ids            probably ->getInverseSideAttributeIds()['ids']
+     */
+    protected function extendQbWithInverseSideAttribute($qb, $attributeClass, $ids)
+    {
+        $unique = count($qb->getParameters()).substr($attributeClass, (strrpos($attributeClass, '\\') ?: -1) + 1);
+        $qb->orWhere('s.fk IN (:idsAttr'.$unique.') AND s.class = :classAttr'.$unique)
+            ->setParameter('classAttr'.$unique, $attributeClass)
+            ->setParameter('idsAttr'.$unique, $ids)
+        ;
+    }
+
+    /**
      * Returns doctrines metadata for the main entity.
      *
      * @return \Doctrine\ORM\Mapping\ClassMetadata
