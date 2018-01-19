@@ -255,6 +255,12 @@ class DataDogAudit implements LogsInterface
                 if ($joinTableName === $assJoinTable) {
                     return $assMapping['fieldName'];
                 }
+            } elseif (is_null($currentVersion->getTarget())
+                && $currentVersion->getSource()->getClass() === $assMapping['targetEntity']
+            ) { // ManyToOne mapping
+                $this->cache['assocTable'][$joinTableName] = $assMapping['fieldName'];
+
+                return $assMapping['fieldName'];
             }
         }
 
