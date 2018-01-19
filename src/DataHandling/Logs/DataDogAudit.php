@@ -163,7 +163,27 @@ class DataDogAudit implements LogsInterface
      */
     protected function getCurrentVersionElement(AuditLog $currentVersion, array $diffElement)
     {
-        if ($currentVersion->getAction() === 'associate') {
+        if (empty($this->cache['entityTableName'])) {
+            $this->cache['entityTableName'] = $this->getEntitiesClassMetaData()->getTableName();
+        }
+        $entityTable = $this->cache['entityTableName'];
+        if ($currentVersion->getTbl() !== $entityTable && $currentVersion->getSource()->getTbl() !== $entityTable) {
+            // owning side of ManyToMany association, the side is not this entity
+            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $label = $this->getLabelForAssociation($currentVersion->getSource());
+            if ('insert' === $currentVersion->getAction()) {
+                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
+                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            } elseif ('remove' === $currentVersion->getAction()) {
+                $label = $this->getCachedAssociationValue($currentVersion->getSource(), true);
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $label;
+            } else { // update, (associate, dissociate)
+                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
+                $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
+                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
+            }
+        } elseif ($currentVersion->getAction() === 'associate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
             $label = $this->getLabelForAssociation($currentVersion->getTarget());
             $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
