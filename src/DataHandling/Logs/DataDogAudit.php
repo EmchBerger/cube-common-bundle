@@ -5,6 +5,7 @@ namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 use DataDog\AuditBundle\Entity\AuditLog;
 use DataDog\AuditBundle\Entity\Association;
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * Class handling data from DataDogAuditBundle.
@@ -28,7 +29,7 @@ class DataDogAudit implements LogsInterface
      *
      * @param object $entity entity for which we want to get all versions
      *
-     * @return \Doctrine\ORM\QueryBuilder
+     * @return QueryBuilder
      */
     protected function getAllVersionsQb($entity)
     {
@@ -66,21 +67,24 @@ class DataDogAudit implements LogsInterface
     {
         // doc is in interface
 
-        $entityVersions = $this->getAllVersionsQb($entity)->getQuery()->getResult();
+        $qb = $this->getAllVersionsQb($entity);
 
-        return $this->auditLogToDiff($entityVersions);
+        return $this->auditLogToDiff($qb);
     }
 
     /**
      * Creates the diff format from related AuditLogs.
      *
-     * @param AuditLog[]|\Iterable $entityVersions
+     * @param AuditLog[]|\Iterable|QueryBuilder $entityVersions
      *
      * @return mixed[] {@see getAllVersionsDiff()}
      */
     protected function auditLogToDiff($entityVersions)
     {
         $diffArray = array();
+        if ($entityVersions instanceof QueryBuilder) {
+            $entityVersions = $entityVersions->getQuery()->getResult();
+        }
 
         /** @var AuditLog $currentVersion */
         foreach ($entityVersions as $currentVersion) {
