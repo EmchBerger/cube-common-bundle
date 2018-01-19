@@ -12,6 +12,9 @@ use Doctrine\ORM\QueryBuilder;
  */
 class DataDogAudit implements LogsInterface
 {
+    const TEMP_KEY_READD = 'temp_readd';
+    const TEMP_KEY_OLDVAL = 'temp_oldval';
+
     /**
      * @var ObjectManager
      */
@@ -21,6 +24,11 @@ class DataDogAudit implements LogsInterface
      * @var mixed[] cached data for current entity type
      */
     protected $cache;
+
+    /**
+     * @var mixed[] cached data for current entity
+     */
+    protected $instanceCache = array();
 
     public function __construct(ObjectManager $em)
     {
@@ -41,6 +49,7 @@ class DataDogAudit implements LogsInterface
         $class = get_class($entity);
         $id = $entity;
 
+        $this->instanceCache = array(); // is only valid for one entity
         if ($class !== $this->cache['class']) {
             $this->cache = array('class' => $class);
         }
@@ -157,18 +166,29 @@ class DataDogAudit implements LogsInterface
         if ($currentVersion->getAction() === 'associate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
             $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
+            $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
+            if ($oldLabel === $label) { // same value is added, save to skip removing later
+                $diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()] = $label;
+            } else { // value has changed, save old value for the coming remove
+                $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()] = $oldLabel;
+                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
+                $this->setCachedAssociationValue($currentVersion->getTarget(), $label);
+            }
         } elseif ($currentVersion->getAction() === 'dissociate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
             $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $label;
-            } else {    // when dissociate and associate on same element that means, that it was before
-                unset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
-                if (empty($diffElement[$columnName][self::KEY_ADD])) {
-                    unset($diffElement[$columnName][self::KEY_ADD]);
+            if (!isset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()])) {
+                $oldLabel = $label;
+                if (isset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()])) {
+                    // get old label because dissociate got the new one
+                    $oldLabel = $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()];
+                    unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
                 }
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
+                $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+            } else {    // when dissociate and associate on same element that means, that it was before
+                unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
+                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
             }
         } else {
             foreach ($currentVersion->getDiff() as $columnName => $diffValue) {
@@ -202,6 +222,11 @@ class DataDogAudit implements LogsInterface
                         && !isset($currentElement[self::KEY_REMOVE])
                 ) {
                     unset($diffArray[$versionKey]['changes'][$columnName]);
+                } elseif (is_array($currentElement)) {
+                    unset(
+                        $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_READD],
+                        $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_OLDVAL]
+                    );
                 }
             }
         }
@@ -262,5 +287,37 @@ class DataDogAudit implements LogsInterface
     private function getEntitiesClassMetaData()
     {
         return $this->em->getClassMetadata($this->cache['class']);
+    }
+
+    /**
+     * Caches a value as current.
+     *
+     * @param Association $ass
+     * @param string      $value
+     */
+    private function setCachedAssociationValue(Association $ass, $value)
+    {
+        $this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()] = $value;
+    }
+
+    /**
+     * Gets a cached current value, and optionally deletes it.
+     *
+     * @param Association $ass
+     * @param bool        $delete
+     *
+     * @return string the cached current value
+     */
+    private function getCachedAssociationValue(Association $ass, $delete)
+    {
+        if (!isset($this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()])) {
+            return;
+        }
+        $value = $this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()];
+        if ($delete) {
+            unset($this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()]);
+        }
+
+        return $value;
     }
 }
