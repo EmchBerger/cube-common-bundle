@@ -120,7 +120,9 @@ class PdfStatistics
 
     /**
      * Set filename.
+     *
      * @param string $filename path of pdf file to be analysed
+     *
      */
     public function setFilename($filename)
     {
@@ -144,8 +146,8 @@ class PdfStatistics
 
             foreach ($histogram as $pixel) {
                 if (!(
-                    ($pixel->getColorValue(\Imagick::COLOR_RED)==$pixel->getColorValue(\Imagick::COLOR_GREEN)) && 
-                    ($pixel->getColorValue(\Imagick::COLOR_GREEN)==$pixel->getColorValue(\Imagick::COLOR_BLUE)) 
+                    ($pixel->getColorValue(\Imagick::COLOR_RED)==$pixel->getColorValue(\Imagick::COLOR_GREEN)) &&
+                    ($pixel->getColorValue(\Imagick::COLOR_GREEN)==$pixel->getColorValue(\Imagick::COLOR_BLUE))
                 )) {    // grayscale is only, when rgb values are the same
                     $pagesInColor[] = $pageIterator;
                     break;
@@ -160,7 +162,7 @@ class PdfStatistics
 
     /**
      * Function return number of pages in pdf document.
-     * @return integer number of pages
+     * @return int number of pages
      */
     public function getNumberOfPages()
     {
@@ -169,9 +171,11 @@ class PdfStatistics
 
     /**
      * Method identifying page format.
+     *
      * @param string $pageSize page size in 1x1 format
-     * @param boolean $returnPageSizeInMmIfNotMatched if set to false and page size does not fit then function return false (default true)
-     * @return string|boolean name of format; if it does not match: page size or false depending on $returnPageSizeInMmIfNotMatched flag
+     * @param bool $returnPageSizeInMmIfNotMatched if set to false and page size does not fit then function return false (default true)
+     *
+     * @return string|bool name of format; if it does not match: page size or false depending on $returnPageSizeInMmIfNotMatched flag
      */
     public function identifyPageSize($pageSize, $returnPageSizeInMmIfNotMatched = true)
     {
@@ -181,10 +185,10 @@ class PdfStatistics
             $pageSizeRotated = $pageSizeArray[1] . 'x' . $pageSizeArray[0];
 
             if (isset($this->pageFormats[$pageSizeRotated])) {
-                $returnPageSize = $this->pageFormats[$pageSizeRotated] . self::PAGE_ROTATED_SUFFIX;
+                $returnPageSize = $this->pageFormats[$pageSizeRotated] . static::PAGE_ROTATED_SUFFIX;
             } else {
                 if ($returnPageSizeInMmIfNotMatched) {
-                    $returnPageSize = sprintf('%dmm x %dmm', 
+                    $returnPageSize = sprintf('%dmm x %dmm',
                             floor($pageSizeArray[0]*self::RATIO_PIXEL_TO_MM),
                             floor($pageSizeArray[1]*self::RATIO_PIXEL_TO_MM)
                         );
