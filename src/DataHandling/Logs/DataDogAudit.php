@@ -124,7 +124,7 @@ class DataDogAudit implements LogsInterface
             }
         }
 
-        return $this->removeColumnIfOnlyUnchanged($diffArray);
+        return $this->filterFinalResult($diffArray);
     }
 
     public function getVersionsOfProperty($entity, $columnName)
@@ -240,13 +240,13 @@ class DataDogAudit implements LogsInterface
     }
 
     /**
-     * Method removes columns, for which changes stays only in unchanged key.
+     * Filter the result before returning.
      *
      * @param array $diffArray subsequent elements are diff for each version
      *
      * @return array subsequent elements are diff for each version, filtered
      */
-    protected function removeColumnIfOnlyUnchanged(array $diffArray)
+    protected function filterFinalResult(array $diffArray)
     {
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue['changes']) as $columnName) {
@@ -255,9 +255,9 @@ class DataDogAudit implements LogsInterface
                         && isset($currentElement[self::KEY_UNCHANGED])
                         && !isset($currentElement[self::KEY_ADD])
                         && !isset($currentElement[self::KEY_REMOVE])
-                ) {
+                ) { // removes columns, for which changes stays only in unchanged key
                     unset($diffArray[$versionKey]['changes'][$columnName]);
-                } elseif (is_array($currentElement)) {
+                } elseif (is_array($currentElement)) { // remove temp results
                     unset(
                         $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_READD],
                         $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_OLDVAL]
