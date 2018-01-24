@@ -256,13 +256,23 @@ class DataDogAudit extends AbstractBaseAudit
                         && !isset($currentElement[self::KEY_ADD])
                         && !isset($currentElement[self::KEY_REMOVE])
                 ) { // removes columns, for which changes stays only in unchanged key
-                    unset($diffArray[$versionKey]['changes'][$columnName]);
+                    unset($versionValue['changes'][$columnName]);
                 } elseif (is_array($currentElement)) { // remove temp results
                     unset(
-                        $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_READD],
-                        $diffArray[$versionKey]['changes'][$columnName][self::TEMP_KEY_OLDVAL]
+                        $versionValue['changes'][$columnName][self::TEMP_KEY_READD],
+                        $versionValue['changes'][$columnName][self::TEMP_KEY_OLDVAL]
                     );
                 }
+            }
+            if ($versionValue['changes']) {
+                $filtered = $this->filterVersionChange($versionValue['changes']);
+            } else {
+                $filtered = null; // mark for remove
+            }
+            if (!$filtered) {
+                unset($diffArray[$versionKey]);
+            } else {
+                $diffArray[$versionKey]['changes'] = $filtered;
             }
         }
 
@@ -309,6 +319,8 @@ class DataDogAudit extends AbstractBaseAudit
 
     /**
      * Method for filtering diff element. Can be override for customization needs.
+     *
+     * May be called multiple times for one change.
      *
      * @param AuditLog $currentVersion
      * @param array    $diffElement
