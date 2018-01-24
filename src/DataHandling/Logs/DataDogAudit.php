@@ -302,9 +302,9 @@ class DataDogAudit implements LogsInterface
         throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
     }
 
-    protected function getLabelForAssociation(Association $ass)
+    protected function getLabelForAssociation(Association $assoc)
     {
-        return $ass->getLabel();
+        return $assoc->getLabel();
     }
 
     /**
@@ -481,30 +481,30 @@ class DataDogAudit implements LogsInterface
     /**
      * Caches a value as current.
      *
-     * @param Association $ass
+     * @param Association $assoc
      * @param string      $value
      */
-    private function setCachedAssociationValue(Association $ass, $value)
+    private function setCachedAssociationValue(Association $assoc, $value)
     {
-        $this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()] = $value;
+        $this->instanceCache['assocCurrentValues'][$assoc->getTbl()][$assoc->getFk()] = $value;
     }
 
     /**
      * Gets a cached current value, and optionally deletes it.
      *
-     * @param Association $ass
+     * @param Association $assoc
      * @param bool        $delete
      *
      * @return string the cached current value
      */
-    private function getCachedAssociationValue(Association $ass, $delete)
+    private function getCachedAssociationValue(Association $assoc, $delete)
     {
-        if (!isset($this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()])) {
+        if (!isset($this->instanceCache['assocCurrentValues'][$assoc->getTbl()][$assoc->getFk()])) {
             return;
         }
-        $value = $this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()];
+        $value = $this->instanceCache['assocCurrentValues'][$assoc->getTbl()][$assoc->getFk()];
         if ($delete) {
-            unset($this->instanceCache['assocCurrentValues'][$ass->getTbl()][$ass->getFk()]);
+            unset($this->instanceCache['assocCurrentValues'][$assoc->getTbl()][$assoc->getFk()]);
         }
 
         return $value;
