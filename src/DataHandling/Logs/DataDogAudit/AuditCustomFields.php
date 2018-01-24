@@ -12,13 +12,6 @@ use DataDog\AuditBundle\Entity\AuditLog;
  */
 class AuditCustomFields extends DataDogAudit
 {
-    public function getAllVersionsDiff($entity)
-    {
-        $diff = parent::getAllVersionsDiff($entity);
-
-        return $this->filterCustomFieldsAllVersionsDiff($diff);
-    }
-
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
         $label = $this->getCustomFieldLabel($currentVersion);
@@ -27,6 +20,11 @@ class AuditCustomFields extends DataDogAudit
         }
 
         return parent::getColumnNameForAssociation($currentVersion);
+    }
+
+    protected function filterAddRemoveProperty(array $propertyDiff, $propertyName)
+    {
+        return $this->filterCustomFieldsProperty($propertyDiff, $propertyName);
     }
 
     /**
@@ -72,32 +70,23 @@ class AuditCustomFields extends DataDogAudit
     }
 
     /**
-     * Filters the diff format of CustomFields.
+     * Filters the diff of one customField property. Merges the changes array to one new value.
      *
-     * To be used in overwritten getAllVersionsDiff() after calling it from parent class.
-     * Rewrites the values as simple value instead of array.
+     * To be used in filterAddRemoveProperty() for logs with CustomFields.
      *
-     * @param array $diff
+     * @param string[][] $propertyDiff
+     * @param string     $propertyName
      *
-     * @return array modified $diff
+     * @return string|string[][]
      */
-    protected function filterCustomFieldsAllVersionsDiff($diff)
+    protected function filterCustomFieldsProperty(array $propertyDiff, $propertyName)
     {
         if (empty($this->instanceCache['customfield_labels'])) {
-            return $diff;
-        }
-        $cfLabels = array_unique($this->instanceCache['customfield_labels']);
-        foreach ($diff as $key => $changeEntry) {
-            $changes = $changeEntry['changes'];
-            foreach ($cfLabels as $label) {
-                if (!isset($changes[$label])) {
-                    continue;
-                }
-                $value = isset($changes[$label][self::KEY_ADD]) ? $changes[$label][self::KEY_ADD] : '';
-                $diff[$key]['changes'][$label] = $value;
-            }
+            // no customFields, keep diff as is
+        } elseif (in_array($propertyName, $this->instanceCache['customfield_labels'])) {
+            $propertyDiff = isset($propertyDiff[self::KEY_ADD]) ? implode(' , ', $propertyDiff[self::KEY_ADD]) : '';
         }
 
-        return $diff;
+        return $propertyDiff;
     }
 }
