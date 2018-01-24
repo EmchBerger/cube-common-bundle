@@ -10,7 +10,7 @@ use Doctrine\ORM\QueryBuilder;
 /**
  * Class handling data from DataDogAuditBundle.
  */
-class DataDogAudit implements LogsInterface
+class DataDogAudit extends AbstractBaseAudit
 {
     use LogsFunctionsTrait;
 
