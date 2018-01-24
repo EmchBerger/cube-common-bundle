@@ -12,6 +12,23 @@ use DataDog\AuditBundle\Entity\AuditLog;
  */
 class AuditCustomFields extends DataDogAudit
 {
+    public function getAllVersionsDiff($entity)
+    {
+        $diff = parent::getAllVersionsDiff($entity);
+
+        return $this->filterCustomFieldsAllVersionsDiff($diff);
+    }
+
+    protected function getColumnNameForAssociation(AuditLog $currentVersion)
+    {
+        $label = $this->getCustomFieldLabel($currentVersion);
+        if ($label) {
+            return $label;
+        }
+
+        return parent::getColumnNameForAssociation($currentVersion);
+    }
+
     /**
      * Get the label for a CustomField.
      *
