@@ -262,6 +262,12 @@ class DataDogAudit extends AbstractBaseAudit
                         $versionValue['changes'][$columnName][self::TEMP_KEY_READD],
                         $versionValue['changes'][$columnName][self::TEMP_KEY_OLDVAL]
                     );
+                    $filteredProp = $this->filterMultiValueProperty($versionValue['changes'][$columnName], $columnName);
+                    if (array() === $filteredProp) {
+                        unset($versionValue['changes'][$columnName]);
+                    } else {
+                        $versionValue['changes'][$columnName] = $filteredProp;
+                    }
                 }
             }
             if ($versionValue['changes']) {

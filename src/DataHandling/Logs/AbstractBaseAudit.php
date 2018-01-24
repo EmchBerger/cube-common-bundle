@@ -19,4 +19,21 @@ abstract class AbstractBaseAudit implements LogsInterface
     {
         return $versionDiff;
     }
+
+    /**
+     * Method for filtering a property with KEY_ADD, .... Can be override for customization needs.
+     *
+     * Returning an empty array deletes the propertys diff. Other values are the new property value.
+     *
+     * Is called once for each property of each change.
+     *
+     * @param string[][] $propertyDiff
+     * @param string     $propertyName
+     *
+     * @return string[][]|string
+     */
+    protected function filterMultiValueProperty(array $propertyDiff, $propertyName)
+    {
+        return $propertyDiff;
+    }
 }
