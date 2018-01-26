@@ -190,12 +190,30 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         return $this;
     }
 
+    public function andWhereLikeWildcard($table, $filterName, $dbColumn = null)
+    {
+        if ($this->isActive($filterName)) {
+            $value = $this->filter[$filterName];
+            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+            $param = $filterName;
+            $this->qb->andWhere($dbColName.' LIKE :'.$param)->setParameter($param, '%'.$value.'%');
+        }
+
+        return $this;
+    }
+
     public function andWhereIn($table, $filterName, $dbColumn = null)
     {
         if ($this->isActive($filterName)) {
             $value = $this->filter[$filterName];
             if ($value instanceof ArrayCollection) {
                 $value = $value->toArray(); // see #DDC-2319
+            }
+            if (is_string($value)) {
+                $jsonDecoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $value = $jsonDecoded;
+                }
             }
             $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
