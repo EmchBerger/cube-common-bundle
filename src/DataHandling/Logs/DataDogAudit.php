@@ -246,7 +246,9 @@ class DataDogAudit extends AbstractBaseAudit
                     unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
                 }
                 $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
+                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+                } // else log started in the middle, incomplete
             } else {    // when dissociate and associate on same element that means, that it was before
                 unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
                 $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
