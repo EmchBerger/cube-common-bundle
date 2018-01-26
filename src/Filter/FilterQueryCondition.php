@@ -47,9 +47,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      * when called: $fqd['x'] = y
      *
      * @param string $name  name of the element
-     * @param any    $value value to set
+     * @param mixed  $value value to set
      *
-     * @return any the value, for chaining
+     * @return mixed the value, for chaining
      */
     public function offsetSet($name, $value)
     {
@@ -65,7 +65,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      *
      * @param string $name name of the element
      *
-     * @return any the value, but convert ArrayCollection to array
+     * @return mixed the value, but convert ArrayCollection to array
      */
     public function offsetGet($name)
     {
@@ -134,7 +134,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Checks if any filter is active.
      *
-     * @return boolen true when any filter active
+     * @return bool true when any filter active
      */
     public function anyActive()
     {
@@ -278,9 +278,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      *
      * Coverts ArrayCollection to array.
      *
-     * @param any $value
+     * @param mixed $value
      *
-     * @return any
+     * @return mixed
      */
     public static function toParameterValue($value)
     {
@@ -294,10 +294,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Calls any method on QueryBuilder if it exists there.
      *
-     * @param string $method
-     * @param any[]  $args
+     * @param string  $method
+     * @param mixed[] $args
      *
-     * @return any
+     * @return mixed
      *
      * @throws \BadMethodCallException when method does not exist
      */
@@ -334,7 +334,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Returns true if the value is an active filter.
      *
-     * @param any $value
+     * @param mixed $value
      *
      * @return bool
      */

@@ -48,7 +48,7 @@ class UserSettings
     private $settingId;
 
     /**
-     * @var any
+     * @var mixed
      *
      * @ORM\Column(type="object")
      */
@@ -115,7 +115,7 @@ class UserSettings
     /**
      * Set value.
      *
-     * @param any $value
+     * @param mixed $value
      *
      * @return UserSettings
      */
@@ -129,7 +129,7 @@ class UserSettings
     /**
      * Get value.
      *
-     * @return any
+     * @return mixed
      */
     public function getValue()
     {
