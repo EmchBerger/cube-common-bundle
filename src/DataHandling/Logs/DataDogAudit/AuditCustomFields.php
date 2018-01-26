@@ -22,7 +22,7 @@ class AuditCustomFields extends DataDogAudit
         return parent::getColumnNameForAssociation($currentVersion);
     }
 
-    protected function filterAddRemoveProperty(array $propertyDiff, $propertyName)
+    protected function filterMultiValueProperty(array $propertyDiff, $propertyName)
     {
         return $this->filterCustomFieldsProperty($propertyDiff, $propertyName);
     }
