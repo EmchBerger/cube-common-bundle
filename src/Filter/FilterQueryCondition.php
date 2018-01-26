@@ -47,9 +47,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      * when called: $fqd['x'] = y
      *
      * @param string $name  name of the element
-     * @param any    $value value to set
+     * @param mixed  $value value to set
      *
-     * @return any the value, for chaining
+     * @return mixed the value, for chaining
      */
     public function offsetSet($name, $value)
     {
@@ -65,7 +65,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      *
      * @param string $name name of the element
      *
-     * @return any the value, but convert ArrayCollection to array
+     * @return mixed the value, but convert ArrayCollection to array
      */
     public function offsetGet($name)
     {
@@ -134,7 +134,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Checks if any filter is active.
      *
-     * @return boolen true when any filter active
+     * @return bool true when any filter active
      */
     public function anyActive()
     {
@@ -190,12 +190,30 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         return $this;
     }
 
+    public function andWhereLikeWildcard($table, $filterName, $dbColumn = null)
+    {
+        if ($this->isActive($filterName)) {
+            $value = $this->filter[$filterName];
+            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+            $param = $filterName;
+            $this->qb->andWhere($dbColName.' LIKE :'.$param)->setParameter($param, '%'.$value.'%');
+        }
+
+        return $this;
+    }
+
     public function andWhereIn($table, $filterName, $dbColumn = null)
     {
         if ($this->isActive($filterName)) {
             $value = $this->filter[$filterName];
             if ($value instanceof ArrayCollection) {
                 $value = $value->toArray(); // see #DDC-2319
+            }
+            if (is_string($value)) {
+                $jsonDecoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $value = $jsonDecoded;
+                }
             }
             $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
@@ -278,9 +296,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      *
      * Coverts ArrayCollection to array.
      *
-     * @param any $value
+     * @param mixed $value
      *
-     * @return any
+     * @return mixed
      */
     public static function toParameterValue($value)
     {
@@ -294,10 +312,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Calls any method on QueryBuilder if it exists there.
      *
-     * @param string $method
-     * @param any[]  $args
+     * @param string  $method
+     * @param mixed[] $args
      *
-     * @return any
+     * @return mixed
      *
      * @throws \BadMethodCallException when method does not exist
      */
@@ -334,7 +352,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Returns true if the value is an active filter.
      *
-     * @param any $value
+     * @param mixed $value
      *
      * @return bool
      */

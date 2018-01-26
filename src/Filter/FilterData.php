@@ -168,8 +168,8 @@ class FilterData
      *
      * The page and sorting are set automatically.
      *
-     * @param midex $query   anything what needs to be paginated
-     * @param type  $limit   number of items per page, defaults to 10
+     * @param mixed $query   anything what needs to be paginated
+     * @param int   $limit   number of items per page, defaults to 10
      * @param array $options less used options, @see PaginatorInterface::paginate
      *
      * @return \Knp\Component\Pager\Pagination\PaginationInterface

@@ -59,7 +59,7 @@ class ExcelConverter
         } elseif ($html instanceof Crawler) {
             $cr = $html;
         } else {
-            $type = is_object($html) ? get_class($html) : get_type($html);
+            $type = is_object($html) ? get_class($html) : gettype($html);
             $msg = '1st argument must by string, Crawler, DOMNode or Response, but is '.$type;
             throw new \InvalidArgumentException($msg);
         }
