@@ -122,14 +122,21 @@ class PdfStatistics
      * Set filename.
      *
      * @param string $filename path of pdf file to be analysed
-     *
+     * @return bool true if file is readable by Imagick, false otherwise
      */
     public function setFilename($filename)
     {
         $this->imagickDocument->clear();
         $this->imagickDocument->setResolution(72, 72);
-        $this->imagickDocument->readImage($filename);
-        $this->imagickDocument->setImageUnits(\Imagick::RESOLUTION_PIXELSPERINCH);
+
+        try {
+            $imageReadResult = $this->imagickDocument->readImage($filename);
+            $this->imagickDocument->setImageUnits(\Imagick::RESOLUTION_PIXELSPERINCH);
+        } catch (\ImagickException $ex) {
+            $imageReadResult = false;
+        }
+
+        return $imageReadResult;
     }
 
     /**
