@@ -107,6 +107,7 @@ class PdfStatistics implements FileStatisticsInterface
 
     /**
      * Constructor checks, if Imagick extension is available. If yes, instance is created.
+     *
      * @throws \RuntimeException if Imagick extension is not available
      */
     public function __construct()
@@ -122,6 +123,7 @@ class PdfStatistics implements FileStatisticsInterface
      * Set filename.
      *
      * @param string $filename path of pdf file to be analyzed
+     *
      * @return bool true if file is readable by Imagick, false otherwise
      */
     public function setFilename($filename)
@@ -141,6 +143,7 @@ class PdfStatistics implements FileStatisticsInterface
 
     /**
      * Method checks, if pdf document pages are in color.
+     *
      * @return array each element is index of page, which is in color (starts from 0)
      */
     public function getPagesInColor()
@@ -169,6 +172,7 @@ class PdfStatistics implements FileStatisticsInterface
 
     /**
      * Function return number of pages in pdf document.
+     *
      * @return int number of pages
      */
     public function getNumberOfPages()
@@ -212,6 +216,7 @@ class PdfStatistics implements FileStatisticsInterface
 
     /**
      * Method returning format of pages.
+     *
      * @return array key is page index, value - size format in text (like 'A4')
      */
     public function getFormatOfPages()
