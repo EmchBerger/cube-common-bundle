@@ -4,7 +4,7 @@ namespace CubeTools\CubeCommonBundle\FileFormat;
 /**
  * Class handling statistics for PDF files.
  */
-class PdfStatistics
+class PdfStatistics implements FileStatisticsInterface
 {
     /**
      * Because 72 pixels make one inch (~254 mm), this parameter shows, how big in mm is one pixel (for 72 ppi).
@@ -121,7 +121,7 @@ class PdfStatistics
     /**
      * Set filename.
      *
-     * @param string $filename path of pdf file to be analysed
+     * @param string $filename path of pdf file to be analyzed
      * @return bool true if file is readable by Imagick, false otherwise
      */
     public function setFilename($filename)

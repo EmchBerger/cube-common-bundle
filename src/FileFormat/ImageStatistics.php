@@ -4,7 +4,7 @@ namespace CubeTools\CubeCommonBundle\FileFormat;
 /**
  * Class handling statistics for image files (based on statistics for PDF files).
  */
-class ImageStatistics extends PdfStatistics
+class ImageStatistics extends PdfStatistics implements FileStatisticsInterface
 {
     /**
      * Method identifying image resolution. One image is one page.
