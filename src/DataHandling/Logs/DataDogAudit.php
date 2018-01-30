@@ -32,6 +32,11 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $instanceCache = array();
 
+    /**
+     * @var \Doctrine\ORM\Query\Expr\OrX
+     */
+    private $orSourceExpr = null;
+
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
@@ -60,12 +65,17 @@ class DataDogAudit extends AbstractBaseAudit
             ->createQueryBuilder('a')
             ->addSelect('s', 'b', 't')
         ;
+        $andExpr = $qb->expr()->andX(
+            's.fk = :entity',
+            's.class = :class'
+        );
+        $this->orSourceExpr = $qb->expr()->orX($andExpr);
         $qb
-            ->join('a.source', 's')
+            ->join('a.source', 's', 'WITH', $this->orSourceExpr)
             ->leftJoin('a.blame', 'b')
             ->leftJoin('a.target', 't')
-            ->where('s.fk = :entity')->setParameter('entity', $id)
-            ->andWhere('s.class = :class')->setParameter('class', $class)
+            ->setParameter('entity', $id)
+            ->setParameter('class', $class)
             ->orderBy('a.id', 'ASC')
         ;
 
@@ -447,7 +457,11 @@ class DataDogAudit extends AbstractBaseAudit
     protected function extendQbWithInverseSideAttribute($qb, $attributeClass, $ids)
     {
         $unique = count($qb->getParameters()).substr($attributeClass, (strrpos($attributeClass, '\\') ?: -1) + 1);
-        $qb->orWhere('s.fk IN (:idsAttr'.$unique.') AND s.class = :classAttr'.$unique)
+        $this->orSourceExpr->add($qb->expr()->andX(
+            's.fk IN (:idsAttr'.$unique.')',
+            's.class = :classAttr'.$unique
+        ));
+        $qb
             ->setParameter('classAttr'.$unique, $attributeClass)
             ->setParameter('idsAttr'.$unique, $ids)
         ;
