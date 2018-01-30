@@ -56,13 +56,17 @@ class DataDogAudit extends AbstractBaseAudit
             $this->cache = array('class' => $class);
         }
 
-        return $this->em->getRepository(AuditLog::class)
+        $qb = $this->em->getRepository(AuditLog::class)
             ->createQueryBuilder('a')
+        ;
+        $qb
             ->join('a.source', 's')
             ->where('s.fk = :entity')->setParameter('entity', $id)
             ->andWhere('s.class = :class')->setParameter('class', $class)
             ->orderBy('a.id', 'ASC')
         ;
+
+        return $qb;
     }
 
     public function getLastBlame($entity)
@@ -389,7 +393,8 @@ class DataDogAudit extends AbstractBaseAudit
         $entInAttr = $entMeta->getAssociationMapping($attribute)['mappedBy'];
         $entClassJson = json_encode($entClass);
 
-        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al')
+        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al');
+        $qb
             ->join('al.source', 's')
             ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
             ->andWhere("al.action = 'insert'")
