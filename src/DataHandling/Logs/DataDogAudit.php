@@ -58,11 +58,12 @@ class DataDogAudit extends AbstractBaseAudit
 
         $qb = $this->em->getRepository(AuditLog::class)
             ->createQueryBuilder('a')
-            ->addSelect('s', 'b')
+            ->addSelect('s', 'b', 't')
         ;
         $qb
             ->join('a.source', 's')
             ->leftJoin('a.blame', 'b')
+            ->leftJoin('a.target', 't')
             ->where('s.fk = :entity')->setParameter('entity', $id)
             ->andWhere('s.class = :class')->setParameter('class', $class)
             ->orderBy('a.id', 'ASC')
