@@ -121,7 +121,7 @@ class DataDogAudit extends AbstractBaseAudit
     /**
      * Creates the diff format from related AuditLogs.
      *
-     * @param AuditLog[]|\Iterable|QueryBuilder $entityVersions
+     * @param AuditLog[]|iterable|QueryBuilder $entityVersions
      *
      * @return mixed[] {@see getAllVersionsDiff()}
      */
