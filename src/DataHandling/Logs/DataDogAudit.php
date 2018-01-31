@@ -394,20 +394,26 @@ class DataDogAudit extends AbstractBaseAudit
         $entClassJson = json_encode($entClass);
 
         $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al');
+        $andWithExpr = $qb->expr()->AndX(
+            's.class = :attrClass'
+        );
+        $qb->setParameter('attrClass', $attrClass);
+
         $qb
-            ->join('al.source', 's')
-            ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
+            ->join('al.source', 's', 'WITH', $andWithExpr)
             ->andWhere("al.action = 'insert'")
             ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
             ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
             ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
         ;
+
         $i = 1;
         foreach ($additionalConditions as $condition) {
             $condValue = json_encode($condition['value']);
             $qb->andWhere('al.diff LIKE :diffLike'.$i)->setParameter('diffLike'.$i, '%"'.$condition['attr'].'"%"new":'.$condValue.'%');
             ++$i;
         }
+
         $candidates = $qb->getQuery()->getResult();
         /// checking real values
         $matchingIds = array();
