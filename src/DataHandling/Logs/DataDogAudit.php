@@ -415,9 +415,8 @@ class DataDogAudit extends AbstractBaseAudit
         $qb
             ->join('al.source', 's', 'WITH', $andWithExpr)
             ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
+            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
             ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-            ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
         ;
 
         $i = 1;
