@@ -32,6 +32,11 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $instanceCache = array();
 
+    /**
+     * @var \Doctrine\ORM\Query\Expr\OrX
+     */
+    private $orSourceExpr = null;
+
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
@@ -56,13 +61,25 @@ class DataDogAudit extends AbstractBaseAudit
             $this->cache = array('class' => $class);
         }
 
-        return $this->em->getRepository(AuditLog::class)
+        $qb = $this->em->getRepository(AuditLog::class)
             ->createQueryBuilder('a')
-            ->join('a.source', 's')
-            ->where('s.fk = :entity')->setParameter('entity', $id)
-            ->andWhere('s.class = :class')->setParameter('class', $class)
+            ->addSelect('s', 'b', 't')
+        ;
+        $andExpr = $qb->expr()->andX(
+            's.fk = :entity',
+            's.class = :class'
+        );
+        $this->orSourceExpr = $qb->expr()->orX($andExpr);
+        $qb
+            ->join('a.source', 's', 'WITH', $this->orSourceExpr)
+            ->leftJoin('a.blame', 'b')
+            ->leftJoin('a.target', 't')
+            ->setParameter('entity', $id)
+            ->setParameter('class', $class)
             ->orderBy('a.id', 'ASC')
         ;
+
+        return $qb;
     }
 
     public function getLastBlame($entity)
@@ -121,7 +138,7 @@ class DataDogAudit extends AbstractBaseAudit
     /**
      * Creates the diff format from related AuditLogs.
      *
-     * @param AuditLog[]|\Iterable|QueryBuilder $entityVersions
+     * @param AuditLog[]|iterable|QueryBuilder $entityVersions
      *
      * @return mixed[] {@see getAllVersionsDiff()}
      */
@@ -389,20 +406,26 @@ class DataDogAudit extends AbstractBaseAudit
         $entInAttr = $entMeta->getAssociationMapping($attribute)['mappedBy'];
         $entClassJson = json_encode($entClass);
 
-        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al')
-            ->join('al.source', 's')
-            ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
+        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al');
+        $andWithExpr = $qb->expr()->AndX(
+            's.class = :attrClass'
+        );
+        $qb->setParameter('attrClass', $attrClass);
+
+        $qb
+            ->join('al.source', 's', 'WITH', $andWithExpr)
             ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
+            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
             ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-            ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
         ;
+
         $i = 1;
         foreach ($additionalConditions as $condition) {
             $condValue = json_encode($condition['value']);
             $qb->andWhere('al.diff LIKE :diffLike'.$i)->setParameter('diffLike'.$i, '%"'.$condition['attr'].'"%"new":'.$condValue.'%');
             ++$i;
         }
+
         $candidates = $qb->getQuery()->getResult();
         /// checking real values
         $matchingIds = array();
@@ -433,7 +456,11 @@ class DataDogAudit extends AbstractBaseAudit
     protected function extendQbWithInverseSideAttribute($qb, $attributeClass, $ids)
     {
         $unique = count($qb->getParameters()).substr($attributeClass, (strrpos($attributeClass, '\\') ?: -1) + 1);
-        $qb->orWhere('s.fk IN (:idsAttr'.$unique.') AND s.class = :classAttr'.$unique)
+        $this->orSourceExpr->add($qb->expr()->andX(
+            's.fk IN (:idsAttr'.$unique.')',
+            's.class = :classAttr'.$unique
+        ));
+        $qb
             ->setParameter('classAttr'.$unique, $attributeClass)
             ->setParameter('idsAttr'.$unique, $ids)
         ;
