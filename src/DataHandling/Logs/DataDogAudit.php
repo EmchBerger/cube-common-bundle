@@ -121,7 +121,7 @@ class DataDogAudit extends AbstractBaseAudit
     /**
      * Creates the diff format from related AuditLogs.
      *
-     * @param AuditLog[]|\Iterable|QueryBuilder $entityVersions
+     * @param AuditLog[]|iterable|QueryBuilder $entityVersions
      *
      * @return mixed[] {@see getAllVersionsDiff()}
      */
@@ -393,9 +393,8 @@ class DataDogAudit extends AbstractBaseAudit
             ->join('al.source', 's')
             ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
             ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
+            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
             ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-            ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
         ;
         $i = 1;
         foreach ($additionalConditions as $condition) {

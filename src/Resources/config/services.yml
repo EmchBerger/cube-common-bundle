@@ -33,3 +33,11 @@ services:
     cube_common.excel.reader:
         class: CubeTools\CubeCommonBundle\FileFormat\ExcelReader
     CubeTools\CubeCommonBundle\FileFormat\ExcelReader: '@cube_common.excel.reader'
+    CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit:
+        class: CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit
+        arguments:
+            - '@Doctrine\Common\Persistence\ObjectManager'
+    CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit\AuditCustomFields:
+        class: CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit\AuditCustomFields
+        arguments:
+            - '@Doctrine\Common\Persistence\ObjectManager'
