@@ -16,6 +16,7 @@ class DataDogAudit extends AbstractBaseAudit
 
     const TEMP_KEY_READD = 'temp_readd';
     const TEMP_KEY_OLDVAL = 'temp_oldval';
+    const UNKNOWN_VERSION_CHANGE = 'unknown version';
 
     /**
      * @var ObjectManager
@@ -127,7 +128,7 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function auditLogToDiff($entityVersions)
     {
-        $diffArray = array();
+        $diffArray = array(self::UNKNOWN_VERSION_CHANGE => array());
         if ($entityVersions instanceof QueryBuilder) {
             $entityVersions = $entityVersions->getQuery()->getResult();
         }
@@ -254,6 +255,13 @@ class DataDogAudit extends AbstractBaseAudit
                 $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
             }
         } else {
+            if ('insert' === $currentVersion->getAction()) {
+                if (!isset($this->instanceCache['insertCalled'])) {
+                    $this->instanceCache['insertCalled'] = true;
+                }
+            } elseif (!isset($this->instanceCache['insertCalled'])) { // update/... before insert
+                $this->instanceCache['insertCalled'] = false;
+            }
             foreach ($currentVersion->getDiff() as $columnName => $diffValue) {
                 if (isset($diffValue['new']['label'])) {
                     // ManyToOne relation has changed
@@ -276,6 +284,16 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function filterFinalResult(array $diffArray)
     {
+        if (empty($this->instanceCache['insertCalled'])) {
+            // insert call missing, incomplete log => update placeholder
+            $diffArray[self::UNKNOWN_VERSION_CHANGE] = array(
+            'changes' => array('  ' => 'unknown document versions before'),
+            'savedBy' => 'UNKNOWN USER',
+            'savedAt' => new \DateTime('1970-01-01 00:00'),
+            );
+        } else {
+            unset($diffArray[self::UNKNOWN_VERSION_CHANGE]); // complete log, remove placeholder
+        }
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue['changes']) as $columnName) {
                 $currentElement = $diffArray[$versionKey]['changes'][$columnName];
