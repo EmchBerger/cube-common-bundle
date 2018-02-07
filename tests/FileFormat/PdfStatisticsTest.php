@@ -18,6 +18,14 @@ class PdfStatisticsTest extends TestCase
         $this->testObject = new PdfStatistics();
     }
 
+    public function testGetFilename()
+    {
+        $this->assertTrue($this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf'));
+        $this->assertFalse($this->testObject->setFilename($this->folderWithPdfsForTests . 'wrongContent.jpg'));
+        $this->assertFalse($this->testObject->setFilename($this->folderWithPdfsForTests . 'fileNotExists.pdf'));
+        $this->assertFalse($this->testObject->setFilename(__FILE__)); // file extension is not handled
+    }
+
     public function testGetFormatOfPages()
     {
         $this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf');

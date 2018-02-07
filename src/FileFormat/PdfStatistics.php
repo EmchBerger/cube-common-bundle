@@ -4,7 +4,7 @@ namespace CubeTools\CubeCommonBundle\FileFormat;
 /**
  * Class handling statistics for PDF files.
  */
-class PdfStatistics
+class PdfStatistics implements FileStatisticsInterface
 {
     /**
      * Because 72 pixels make one inch (~254 mm), this parameter shows, how big in mm is one pixel (for 72 ppi).
@@ -107,6 +107,7 @@ class PdfStatistics
 
     /**
      * Constructor checks, if Imagick extension is available. If yes, instance is created.
+     *
      * @throws \RuntimeException if Imagick extension is not available
      */
     public function __construct()
@@ -121,19 +122,28 @@ class PdfStatistics
     /**
      * Set filename.
      *
-     * @param string $filename path of pdf file to be analysed
+     * @param string $filename path of pdf file to be analyzed
      *
+     * @return bool true if file is readable by Imagick, false otherwise
      */
     public function setFilename($filename)
     {
         $this->imagickDocument->clear();
         $this->imagickDocument->setResolution(72, 72);
-        $this->imagickDocument->readImage($filename);
-        $this->imagickDocument->setImageUnits(\Imagick::RESOLUTION_PIXELSPERINCH);
+
+        try {
+            $imageReadResult = $this->imagickDocument->readImage($filename);
+            $this->imagickDocument->setImageUnits(\Imagick::RESOLUTION_PIXELSPERINCH);
+        } catch (\ImagickException $ex) {
+            $imageReadResult = false;
+        }
+
+        return $imageReadResult;
     }
 
     /**
      * Method checks, if pdf document pages are in color.
+     *
      * @return array each element is index of page, which is in color (starts from 0)
      */
     public function getPagesInColor()
@@ -162,6 +172,7 @@ class PdfStatistics
 
     /**
      * Function return number of pages in pdf document.
+     *
      * @return int number of pages
      */
     public function getNumberOfPages()
@@ -205,6 +216,7 @@ class PdfStatistics
 
     /**
      * Method returning format of pages.
+     *
      * @return array key is page index, value - size format in text (like 'A4')
      */
     public function getFormatOfPages()
