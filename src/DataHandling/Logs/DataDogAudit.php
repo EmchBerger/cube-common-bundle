@@ -2,6 +2,7 @@
 
 namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 
+use CubeTools\CubeCommonBundle\DataHandling\StringHelper;
 use DataDog\AuditBundle\Entity\AuditLog;
 use DataDog\AuditBundle\Entity\Association;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -366,7 +367,7 @@ class DataDogAudit extends AbstractBaseAudit
 
     protected function getLabelForAssociation(Association $assoc)
     {
-        return $assoc->getLabel();
+        return StringHelper::indicateStrippedKeepSize($assoc->getLabel(), 255); // 255 is the labels column size
     }
 
     /**
