@@ -14,8 +14,6 @@ class DataDogAudit extends AbstractBaseAudit
 {
     use LogsFunctionsTrait;
 
-    const TEMP_KEY_READD = 'temp_readd';
-    const TEMP_KEY_OLDVAL = 'temp_oldval';
     const UNKNOWN_VERSION_CHANGE = 'unknown version';
 
     /**
@@ -250,53 +248,52 @@ class DataDogAudit extends AbstractBaseAudit
 
     protected function handleOtherAttributeSideChange(AuditLog $currentVersion, array &$diffElement)
     {
-        $columnName = $this->getColumnNameForAssociation($currentVersion);
-        $label = $this->getLabelForAssociation($currentVersion->getSource());
-        if ('insert' === $currentVersion->getAction()) {
-            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
+        $id = $currentVersion->getSource()->getFk();
+        $assocClass = $currentVersion->getSource()->getClass();
+
+        if (empty($this->instanceCache['currentAttributes'][$assocClass][$id])) {
+            return; // not associated
+        }
+
+        foreach ($this->instanceCache['currentAttributes'][$assocClass][$id] as $attrName => $registered) {
+            if ($registered <= 0) {
+                continue; // not associated => next $attrName
+            }
+            $label = $this->getLabelForAssociation($currentVersion->getSource());
+            $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), false);
             $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-        } elseif ('remove' === $currentVersion->getAction()) {
-            $label = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-            $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $label;
-        } else { // update, (associate, dissociate)
-            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
-            $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-            $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-            $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
+            $diffElement[$attrName][self::KEY_ADD][$id] = $label;
+            $diffElement[$attrName][self::KEY_REMOVE][$id] = $oldLabel;
         }
     }
 
     protected function handleAssociateDissociate(AuditLog $currentVersion, array &$diffElement)
     {
         if ('associate' === $currentVersion->getAction()) {
+            $id = $currentVersion->getTarget()->getFk();
+            $assocClass = $currentVersion->getTarget()->getClass();
             $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
-            if ($oldLabel === $label) { // same value is added, save to skip removing later
-                $diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()] = $label;
-            } else { // value has changed, save old value for the coming remove
-                $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
-                $this->setCachedAssociationValue($currentVersion->getTarget(), $label);
+
+            if (empty($this->instanceCache['currentAttributes'][$assocClass][$id][$columnName])) {
+                $label = $this->getLabelForAssociation($currentVersion->getTarget());
+                $diffElement[$columnName][self::KEY_ADD][$id] = $label;
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 1;
+                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            } else {
+                ++$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
             }
         } elseif ('dissociate' === $currentVersion->getAction()) {
+            $id = $currentVersion->getTarget()->getFk();
+            $assocClass = $currentVersion->getTarget()->getClass();
             $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            if (!isset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()])) {
-                $oldLabel = $label;
-                if (isset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()])) {
-                    // get old label because dissociate got the new one
-                    $oldLabel = $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()];
-                    unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
-                }
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
-                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
-                } // else log started in the middle, incomplete
-            } else {    // when dissociate and associate on same element that means, that it was before
-                unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
+
+            --$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
+            if (0 === $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName]) {
+                $oldLabel = $this->getLabelForAssociation($currentVersion->getTarget());
+                $diffElement[$columnName][self::KEY_REMOVE][$id] = $oldLabel;
             }
+        } else {
+            throw new \LogicException('Action '.$currentVersion->getAction().' is not supported by this method.');
         }
     }
 
@@ -322,17 +319,7 @@ class DataDogAudit extends AbstractBaseAudit
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue['changes']) as $columnName) {
                 $currentElement = $diffArray[$versionKey]['changes'][$columnName];
-                if (is_array($currentElement)
-                        && isset($currentElement[self::KEY_UNCHANGED])
-                        && !isset($currentElement[self::KEY_ADD])
-                        && !isset($currentElement[self::KEY_REMOVE])
-                ) { // removes columns, for which changes stays only in unchanged key
-                    unset($versionValue['changes'][$columnName]);
-                } elseif (is_array($currentElement)) { // remove temp results
-                    unset(
-                        $versionValue['changes'][$columnName][self::TEMP_KEY_READD],
-                        $versionValue['changes'][$columnName][self::TEMP_KEY_OLDVAL]
-                    );
+                if (is_array($currentElement)) {
                     $filteredProp = $this->filterMultiValueProperty($versionValue['changes'][$columnName], $columnName);
                     if (array() === $filteredProp) {
                         unset($versionValue['changes'][$columnName]);
@@ -386,7 +373,7 @@ class DataDogAudit extends AbstractBaseAudit
             }
         }
 
-        return ' unknown '.$joinTableName; // temporary only
+        throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
     }
 
     protected function getLabelForAssociation(Association $assoc)
