@@ -64,7 +64,17 @@ class DataDogAudit extends AbstractBaseAudit
             $this->cache = array('class' => $class);
         }
 
+        $aQb = $this->auditQueries->createOwningSideQb($id, $class);
+
+        $assocClasses = array();
+        foreach ($aQb->getQuery()->getResult() as $infos) {
+            $assocClasses[$infos['class']][] = $infos['fk'];
+        }
+
         $qb = $this->auditQueries->createAuditLogQb($id, $class);
+        foreach ($assocClasses as $assocClass => $ids) {
+            $this->auditQueries->extendAuditLogWithAttributeQb($qb, $assocClass, $ids);
+        }
 
         return $qb;
     }
@@ -364,7 +374,7 @@ class DataDogAudit extends AbstractBaseAudit
             }
         }
 
-        throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
+        return ' unknown '.$joinTableName; // temporary only
     }
 
     protected function getLabelForAssociation(Association $assoc)

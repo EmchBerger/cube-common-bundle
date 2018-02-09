@@ -91,4 +91,18 @@ class AuditQueries
             ++$i;
         }
     }
+
+    public function createOwningSideQb($entity, $class)
+    {
+        $qb = $this->createAuditLogQb($entity, $class);
+        $qb
+            ->select('t.fk, t.class')
+            ->distinct()
+            ->join('a.target', 't')
+            ->andWhere("a.action = 'associate'")
+            ->orderBy('t.class')
+        ;
+
+        return $qb;
+    }
 }
