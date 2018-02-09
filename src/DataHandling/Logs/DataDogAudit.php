@@ -33,9 +33,16 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $instanceCache = array();
 
+    /**
+     *
+     * @var DataDogAudit\AuditQueries
+     */
+    protected $auditQueries;
+
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
+        $this->auditQueries = new DataDogAudit\AuditQueries($em);
     }
 
     /**
@@ -57,13 +64,9 @@ class DataDogAudit extends AbstractBaseAudit
             $this->cache = array('class' => $class);
         }
 
-        return $this->em->getRepository(AuditLog::class)
-            ->createQueryBuilder('a')
-            ->join('a.source', 's')
-            ->where('s.fk = :entity')->setParameter('entity', $id)
-            ->andWhere('s.class = :class')->setParameter('class', $class)
-            ->orderBy('a.id', 'ASC')
-        ;
+        $qb = $this->auditQueries->createAuditLogQb($id, $class);
+
+        return $qb;
     }
 
     public function getLastBlame($entity)
@@ -407,21 +410,10 @@ class DataDogAudit extends AbstractBaseAudit
         }
         $attrClass = $entMeta->getAssociationMapping($attribute)['targetEntity'];
         $entInAttr = $entMeta->getAssociationMapping($attribute)['mappedBy'];
-        $entClassJson = json_encode($entClass);
 
-        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al')
-            ->join('al.source', 's')
-            ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
-            ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
-            ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-        ;
-        $i = 1;
-        foreach ($additionalConditions as $condition) {
-            $condValue = json_encode($condition['value']);
-            $qb->andWhere('al.diff LIKE :diffLike'.$i)->setParameter('diffLike'.$i, '%"'.$condition['attr'].'"%"new":'.$condValue.'%');
-            ++$i;
-        }
+        $qb = $this->auditQueries->create1toNAssociationQb($attrClass, $entInAttr, $entClass, $entId);
+        $this->auditQueries->extend1toNAssociationQb($qb, $additionalConditions);
+
         $candidates = $qb->getQuery()->getResult();
         /// checking real values
         $matchingIds = array();
@@ -449,13 +441,9 @@ class DataDogAudit extends AbstractBaseAudit
      * @param string       $attributeClass probably ->getInverseSideAttributeIds()['class']
      * @param int[]        $ids            probably ->getInverseSideAttributeIds()['ids']
      */
-    protected function extendQbWithInverseSideAttribute($qb, $attributeClass, $ids)
+    protected function extendQbWithInverseSideAttribute(QueryBuilder $qb, $attributeClass, $ids)
     {
-        $unique = count($qb->getParameters()).substr($attributeClass, (strrpos($attributeClass, '\\') ?: -1) + 1);
-        $qb->orWhere('s.fk IN (:idsAttr'.$unique.') AND s.class = :classAttr'.$unique)
-            ->setParameter('classAttr'.$unique, $attributeClass)
-            ->setParameter('idsAttr'.$unique, $ids)
-        ;
+        $this->auditQueries->extendAuditLogWithAttributeQb($qb, $attributeClass, $ids);
     }
 
     /**
