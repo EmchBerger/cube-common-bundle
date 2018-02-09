@@ -223,21 +223,8 @@ class DataDogAudit extends AbstractBaseAudit
         }
         $entityTable = $this->cache['entityTableName'];
         if ($currentVersion->getTbl() !== $entityTable && $currentVersion->getSource()->getTbl() !== $entityTable) {
-            // owning side of ManyToMany association, the side is not this entity
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getSource());
-            if ('insert' === $currentVersion->getAction()) {
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
-                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-            } elseif ('remove' === $currentVersion->getAction()) {
-                $label = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $label;
-            } else { // update, (associate, dissociate)
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
-                $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
-            }
+            // other side of association
+            $this->handleOtherAttributeSideChange($currentVersion, $diffElement);
         } elseif ($currentVersion->getAction() === 'associate') {
             $columnName = $this->getColumnNameForAssociation($currentVersion);
             $label = $this->getLabelForAssociation($currentVersion->getTarget());
@@ -286,6 +273,24 @@ class DataDogAudit extends AbstractBaseAudit
         }
 
         return $this->filterVersionElement($currentVersion, $diffElement);
+    }
+
+    protected function handleOtherAttributeSideChange(AuditLog $currentVersion, array &$diffElement)
+    {
+        $columnName = $this->getColumnNameForAssociation($currentVersion);
+        $label = $this->getLabelForAssociation($currentVersion->getSource());
+        if ('insert' === $currentVersion->getAction()) {
+            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
+            $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+        } elseif ('remove' === $currentVersion->getAction()) {
+            $label = $this->getCachedAssociationValue($currentVersion->getSource(), true);
+            $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $label;
+        } else { // update, (associate, dissociate)
+            $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
+            $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
+            $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
+        }
     }
 
     /**
