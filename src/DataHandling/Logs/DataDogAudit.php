@@ -225,35 +225,8 @@ class DataDogAudit extends AbstractBaseAudit
         if ($currentVersion->getTbl() !== $entityTable && $currentVersion->getSource()->getTbl() !== $entityTable) {
             // other side of association
             $this->handleOtherAttributeSideChange($currentVersion, $diffElement);
-        } elseif ($currentVersion->getAction() === 'associate') {
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
-            if ($oldLabel === $label) { // same value is added, save to skip removing later
-                $diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()] = $label;
-            } else { // value has changed, save old value for the coming remove
-                $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
-                $this->setCachedAssociationValue($currentVersion->getTarget(), $label);
-            }
-        } elseif ($currentVersion->getAction() === 'dissociate') {
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            if (!isset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()])) {
-                $oldLabel = $label;
-                if (isset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()])) {
-                    // get old label because dissociate got the new one
-                    $oldLabel = $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()];
-                    unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
-                }
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
-                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
-                } // else log started in the middle, incomplete
-            } else {    // when dissociate and associate on same element that means, that it was before
-                unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
-            }
+        } elseif (!$currentVersion->getDiff()) {
+            $this->handleAssociateDissociate($currentVersion, $diffElement);
         } else {
             if ('insert' === $currentVersion->getAction()) {
                 if (!isset($this->instanceCache['insertCalled'])) {
@@ -290,6 +263,40 @@ class DataDogAudit extends AbstractBaseAudit
             $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
             $this->setCachedAssociationValue($currentVersion->getSource(), $label);
             $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
+        }
+    }
+
+    protected function handleAssociateDissociate(AuditLog $currentVersion, array &$diffElement)
+    {
+        if ('associate' === $currentVersion->getAction()) {
+            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $label = $this->getLabelForAssociation($currentVersion->getTarget());
+            $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
+            if ($oldLabel === $label) { // same value is added, save to skip removing later
+                $diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()] = $label;
+            } else { // value has changed, save old value for the coming remove
+                $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()] = $oldLabel;
+                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
+                $this->setCachedAssociationValue($currentVersion->getTarget(), $label);
+            }
+        } elseif ('dissociate' === $currentVersion->getAction()) {
+            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $label = $this->getLabelForAssociation($currentVersion->getTarget());
+            if (!isset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()])) {
+                $oldLabel = $label;
+                if (isset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()])) {
+                    // get old label because dissociate got the new one
+                    $oldLabel = $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()];
+                    unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
+                }
+                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
+                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
+                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+                } // else log started in the middle, incomplete
+            } else {    // when dissociate and associate on same element that means, that it was before
+                unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
+                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
+            }
         }
     }
 
