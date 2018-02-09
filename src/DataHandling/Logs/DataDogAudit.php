@@ -428,8 +428,8 @@ class DataDogAudit extends AbstractBaseAudit
         /** @var AuditLog $candidate */
         foreach ($candidates as $candidate) {
             $diff = $candidate->getDiff();
-            if ($diff[$entInAttr]['new']['fk'] != $entId) {
-                continue; // wrong id => next candidate
+            if ($diff[$entInAttr]['new']['class'] !== $entClass || $diff[$entInAttr]['new']['fk'] != $entId) {
+                continue; // wrong class/id => next candidate (id may have type string or int)
             }
             foreach ($additionalConditions as $condition) {
                 if ($condition['value'] !== $diff[$condition['attr']]['new']) {
