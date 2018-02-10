@@ -72,4 +72,17 @@ class StringHelperTest extends TestCase
             $this->assertNotContains($c, StringHelper::sanitizeFilename($testName));
         }
     }
+
+    public function testIndicateStrippedKeepSize()
+    {
+        $testText = function ($expected, $text, $length, $hint) {
+            $this->assertSame($expected.'|', StringHelper::indicateStrippedKeepSize($text, $length).'|', $hint.'?');
+        };
+        $testText('1234', '1234', 6, 'too short');
+        $testText('a2cd5…', 'a2cd5e78', 8, 'looks stripped');
+        $testText('ä3… ', 'ä3£67', 7, 'stripped, with multi byte chars');
+        $testText('àc4e67h9j …  ', 'àc4e67h9j 2mno6', 16, 'stripped, to word boundry');
+        $testText('1bc4è 8ij1.…   ', '1bc4è 8ij1.m4õq8', 18, 'stripped, to word boundry');
+        $testText('abc efghijk mnopqrstuvwzxzabcdefghijklmn… ', 'abc efghijk mnopqrstuvwzxzabcdefghijklmnôpq', 44, 'stripped, word too long');
+    }
 }

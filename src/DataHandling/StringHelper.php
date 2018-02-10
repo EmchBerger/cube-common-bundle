@@ -138,4 +138,32 @@ class StringHelper
     {
         return rtrim($dir, '/').'/';
     }
+
+    /**
+     * Indicates with … when the text is likely truncated.
+     *
+     * The text is truncated on a space, if one is close to the end.
+     * The string length is preserved at the lenght of bytes. (Spaces are appended when the length is too short.)
+     *
+     * @param string $text
+     * @param int    $trucatedLength lenght (in bytes) the text may have been truncated to
+     *
+     * @return string modified text (if length is trucatedLength)
+     */
+    public static function indicateStrippedKeepSize($text, $trucatedLength)
+    {
+        if (strlen($text) === $trucatedLength) {
+            $strLenPpp = 3; // strlen of …
+            $tmpText = substr($text, 0, 1 - $strLenPpp); // is one byte too long, is stripped below
+            $workBreakText = preg_replace('/[\p{L}\p{Nd}]*$/u', '', $tmpText);
+            if ($tmpText !== $workBreakText && strlen($workBreakText) > max($trucatedLength - 25, 10)) { // length sufficent
+                $tmpText = $workBreakText;
+            } else {
+                $tmpText = mb_substr($tmpText, 0, -1); // remove one entire character
+            }
+            $text = substr($tmpText.'…                         ', 0, $trucatedLength); // keep length
+        }
+
+        return $text;
+    }
 }
