@@ -443,7 +443,9 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function extendQbWithInverseSideAttribute(QueryBuilder $qb, $attributeClass, $ids)
     {
-        $this->auditQueries->extendAuditLogWithAttributeQb($qb, $attributeClass, $ids);
+        if ($ids) {
+            $this->auditQueries->extendAuditLogWithAttributeQb($qb, $attributeClass, $ids);
+        }
     }
 
     /**
