@@ -57,7 +57,9 @@ class DataDogAudit extends AbstractBaseAudit
         $class = get_class($entity);
         $id = $entity;
 
-        $this->instanceCache = array(); // is only valid for one entity
+        $this->instanceCache = array(
+            'id' => $id,
+        ); // is only valid for one entity
         if ($class !== $this->cache['class']) {
             $this->cache = array('class' => $class);
         }
@@ -251,6 +253,22 @@ class DataDogAudit extends AbstractBaseAudit
         $id = $currentVersion->getSource()->getFk();
         $assocClass = $currentVersion->getSource()->getClass();
 
+        if ($currentVersion->getDiff() && isset($this->cache['oneToManyAssoc'][$assocClass])) {
+            $isThisEntity = function ($check) {
+                return is_array($check) && $check['class'] === $this->cache['class'] && $check['fk'] === $this->instanceCache['id'];
+            };
+            foreach ($currentVersion->getDiff() as $fieldName => $fieldChange) {
+                if ($isThisEntity($fieldChange['new'])) { //associate
+                    $assocAttrName = $this->getAttributeNameFor1toN($currentVersion, $fieldName);
+                    $this->instanceCache['currentAttributes'][$assocClass][$id][$assocAttrName] = 1;
+                }
+                if ($isThisEntity($fieldChange['old'])) { //dissociate
+                    $assocAttrName = $this->getAttributeNameFor1toN($currentVersion, $fieldName);
+                    unset($this->instanceCache['currentAttributes'][$assocClass][$id][$assocAttrName]);
+                }
+            }
+        }
+
         if (empty($this->instanceCache['currentAttributes'][$assocClass][$id])) {
             return; // not associated
         }
@@ -272,7 +290,7 @@ class DataDogAudit extends AbstractBaseAudit
         if ('associate' === $currentVersion->getAction()) {
             $id = $currentVersion->getTarget()->getFk();
             $assocClass = $currentVersion->getTarget()->getClass();
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $columnName = $this->getAttributeNameForNtoN($currentVersion);
 
             if (empty($this->instanceCache['currentAttributes'][$assocClass][$id][$columnName])) {
                 $label = $this->getLabelForAssociation($currentVersion->getTarget());
@@ -285,7 +303,7 @@ class DataDogAudit extends AbstractBaseAudit
         } elseif ('dissociate' === $currentVersion->getAction()) {
             $id = $currentVersion->getTarget()->getFk();
             $assocClass = $currentVersion->getTarget()->getClass();
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
+            $columnName = $this->getAttributeNameForNtoN($currentVersion);
 
             --$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
             if (0 === $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName]) {
@@ -348,10 +366,20 @@ class DataDogAudit extends AbstractBaseAudit
      *
      * @param AuditLog $currentVersion
      *
-     * @return string name
+     * @return string|null name
      */
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
+        return null;
+    }
+
+    protected function getAttributeNameForNtoN(AuditLog $currentVersion)
+    {
+        $name = $this->getColumnNameForAssociation($currentVersion);
+        if (is_string($name)) {
+            return $name;
+        }
+
         $joinTableName = $currentVersion->getTbl();
         if (isset($this->cache['assocTable'][$joinTableName])) {
             return $this->cache['assocTable'][$joinTableName];
@@ -364,16 +392,21 @@ class DataDogAudit extends AbstractBaseAudit
                 if ($joinTableName === $assJoinTable) {
                     return $assMapping['fieldName'];
                 }
-            } elseif (is_null($currentVersion->getTarget())
-                && $currentVersion->getSource()->getClass() === $assMapping['targetEntity']
-            ) { // ManyToOne mapping
-                $this->cache['assocTable'][$joinTableName] = $assMapping['fieldName'];
-
-                return $assMapping['fieldName'];
             }
         }
 
         throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
+    }
+
+    protected function getAttributeNameFor1toN(AuditLog $currentVersion, $otherAttrName)
+    {
+        $name = $this->getColumnNameForAssociation($currentVersion);
+        if (is_string($name)) {
+            return $name;
+        }
+        $attrClass = $currentVersion->getSource()->getClass();
+
+        return $this->cache['oneToManyAssoc'][$attrClass][$otherAttrName];
     }
 
     protected function getLabelForAssociation(Association $assoc)
@@ -439,6 +472,7 @@ class DataDogAudit extends AbstractBaseAudit
             }
             $matchingIds[] = $candidate->getSource()->getFk();
         }
+        $this->cache['oneToManyAssoc'][$attrClass][$entInAttr] = $attribute;
 
         return array('class' => $attrClass, 'ids' => $matchingIds);
     }
