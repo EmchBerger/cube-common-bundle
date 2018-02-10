@@ -16,6 +16,9 @@ class DataDogAudit extends AbstractBaseAudit
 
     const UNKNOWN_VERSION_CHANGE = 'unknown version';
 
+    const KEY_MODIFY_NEW = self::KEY_ADD;
+    const KEY_MODIFY_OLD = self::KEY_REMOVE;
+
     /**
      * @var ObjectManager
      */
@@ -280,8 +283,8 @@ class DataDogAudit extends AbstractBaseAudit
             $label = $this->getLabelForAssociation($currentVersion->getSource());
             $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), false);
             $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-            $diffElement[$attrName][self::KEY_ADD][$id] = $label;
-            $diffElement[$attrName][self::KEY_REMOVE][$id] = $oldLabel;
+            $diffElement[$attrName][self::KEY_MODIFY_NEW][$id] = $label;
+            $diffElement[$attrName][self::KEY_MODIFY_OLD][$id] = $oldLabel;
         }
     }
 
