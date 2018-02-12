@@ -17,6 +17,8 @@ Variants to mark columns to allow to hide, do the following on the topmost cell:
 +-----------------------------+----------------------------------------------+----------------------------------------+
 | id="xxxCol"                 | set id ending with Col                       | id_xCol                                |
 +-----------------------------+----------------------------------------------+----------------------------------------+
+| class="... xxxCol"          | set last class ending on Col                 | class_xCol                             |
++-----------------------------+----------------------------------------------+----------------------------------------+
 
 to prevent hiding when above matches:
 

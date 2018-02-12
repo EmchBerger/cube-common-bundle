@@ -32,6 +32,8 @@ if (typeof(cubetools) === 'undefined') {
     var tableSettings = {};
     var columnStyle = null;
 
+    const SET_ID_LATER = true;
+
     /**
      * Check if id matches "col[A-Z].*", for initializeColsSelection().
      *
@@ -62,6 +64,21 @@ if (typeof(cubetools) === 'undefined') {
         return null;
     };
 
+    /**
+     * Check if class matches ".*Col", for initializeColsSelection().
+     *
+     * @param {jQuery} col topmost cell (td/th) of column
+     *
+     * @returns {String|null}
+     */
+    var isMatchingClassXCol = function (col)
+    {
+        if (col.is('[class$=Col]')) {
+            return SET_ID_LATER;
+        }
+        return null;
+    };
+
     cs.initializeColsSelection = function (settingsOfTables, columnType)
     {
         // initialize selectors
@@ -77,6 +94,9 @@ if (typeof(cubetools) === 'undefined') {
                 break;
             case 'id_xCol':
                 matchFn = isMatchingIdXCol;
+                break;
+            case 'class_xCol':
+                matchFn = isMatchingClassXCol;
                 break;
             default:
                 if (true) {
@@ -109,10 +129,6 @@ if (typeof(cubetools) === 'undefined') {
                     colId = matchFn(col);
                 }
                 if (colId) {
-                    var colId = col.attr('id');
-                    var cSettings = setSettings[colId] || {};
-                    cSettings.colId = colId;
-                    cSettings.colNo = i + 1;
                     var colSel;
                     if (col.attr('class')) {
                         var colClass = col.attr('class').split(' ').find(function (el) {
@@ -123,6 +139,14 @@ if (typeof(cubetools) === 'undefined') {
                         });
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
+                            if (SET_ID_LATER === colId) {
+                                colId = colClass;
+                                if ($('#'+colId).length > 0) {
+                                    console.warn('Column with class '+colClass+' can not be identified unique.');
+                                    return; // go to next column
+                                }
+                                col.attr('id', colId);
+                            }
                         }
                     }
                     if (settings[colId]) {
@@ -130,6 +154,9 @@ if (typeof(cubetools) === 'undefined') {
                         return; // go to next column
                     }
 
+                    var cSettings = setSettings[colId] || {};
+                    cSettings.colId = colId;
+                    cSettings.colNo = i + 1;
                     if (!colSel) {
                         var colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
                         colSel += ', ' + colSel.replace(' td:', ' th:');
