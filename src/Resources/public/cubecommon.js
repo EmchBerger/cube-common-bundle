@@ -105,7 +105,7 @@ if (typeof(cubetools) === 'undefined') {
     cs.getButtonForId = function (id) {
         var btnSel = '.colsSelector';
         if (id) {
-            btnSel += '#'+id;
+            return $(document.getElementById(id)).filter(btnSel);
         }
         return $(btnSel);
     };
