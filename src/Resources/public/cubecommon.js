@@ -67,7 +67,10 @@ if (typeof(cubetools) === 'undefined') {
                     var colSel;
                     if (col.attr('class')) {
                         var colClass = col.attr('class').split(' ').find(function (el) {
-                            return 0 === el.indexOf('col'); // ~startsWith
+                            return
+                                0 === el.indexOf('col') || // ~startsWith
+                                el.length - 3 === el.indexOf('Col') // ~endsWith
+                            ;
                         });
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
@@ -84,7 +87,7 @@ if (typeof(cubetools) === 'undefined') {
                     }
                     columnStyle.insertRule(colSel+' {}', columnStyle.cssRules.length);
                     cSettings.ruleNo = columnStyle.cssRules.length - 1;
-                     settings[colId] = cSettings;
+                    settings[colId] = cSettings;
                 }
             });
             tableSettings[id] = settings;

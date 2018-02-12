@@ -14,7 +14,7 @@ Mark columns to allow hiding:
 Mark columns when colspan is used
 ---------------------------------
 
-Set the same class on all cells of a column. The class name must start with "col".
+Set the same class on all cells of a column. The class name must start with "col" or end with "Col".
 
 This is only necessary when there are cells with attribute colspan="n".
 
