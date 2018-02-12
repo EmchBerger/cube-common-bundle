@@ -1,7 +1,7 @@
-{% macro nearButton(id) %}
+{% macro nearButton(btnId) %}
     {{ render(controller(
         'CubeToolsCubeCommonBundle:ColumnSelector:nearButton',
-        {'path': app.request.getPathInfo(), 'id': id|default('')}
+        {'path': app.request.getPathInfo(), 'btnId': btnId|default('')}
     )) }}
 {% endmacro %}
 
