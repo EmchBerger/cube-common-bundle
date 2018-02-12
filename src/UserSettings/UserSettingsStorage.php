@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonBundle\UserSettings;
 
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use CubeTools\CubeCommonBundle\Entity\UserSettings;
 
 /**
@@ -17,6 +18,11 @@ class UserSettingsStorage
     private $em;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $dispatcher;
+
+    /**
      * @var \Symfony\Component\Security\Core\User\UserInterface
      */
     private $user;
@@ -27,9 +33,10 @@ class UserSettingsStorage
      * @param ManagerRegistry       $doctrine
      * @param TokenStorageInterface $tokenStorage
      */
-    public function __construct(ManagerRegistry $doctrine, TokenStorageInterface $tokenStorage)
+    public function __construct(ManagerRegistry $doctrine, TokenStorageInterface $tokenStorage, EventDispatcherInterface $dispatcher)
     {
         $this->em = $doctrine->getManager();
+        $this->dispatcher = $dispatcher;
         $token = $tokenStorage->getToken();
         if (null === $token) {
             return;
@@ -52,11 +59,19 @@ class UserSettingsStorage
     public function getUserSetting($type, $settingId)
     {
         $ent = $this->getEntity($type, $settingId);
-        if (null === $ent) {
-            return null;
+        $eventName = 'cube_common.userSettingNotFound';
+        if (!is_null($ent)) {
+            $ret = $ent->getValue();
+        } elseif ($this->dispatcher->hasListeners($eventName)) {
+            // get default value from listener
+            $event = new ValueEvent($type, $settingId);
+            $this->dispatcher->dispatch($eventName, $event);
+            $ret = $event->getValue();
+        } else {
+            $ret = null;
         }
 
-        return $ent->getValue();
+        return $ret;
     }
 
     /**

@@ -100,3 +100,20 @@ Define it as a macro
             <div class="text-right"><button class="btn btn-small colSelCloseBtn">Close</button></div> {# optional close btn #}
         </div>
     {% endmacro %}
+
+Set default values
+------------------
+
+Register a listener for event ``cube_common.userSettingNotFound``.
+On the event argument `CubeTools\\CubeCommonBundle\\UserSettings\\ValueEvent <../../UserSettings/ValueEvent.php>`_,
+call ``$event->setValue($defaultSetting)`` after checking ``$event->getType() === 'column'`` and
+probably ``$event->getSettingId()`` (= ``pageRelUrl + '~' + btnId``, or ``btnId`` without leading ``'X:'``).
+
+The format of UserSettings for ColumSelections is:
+
+  .. code-block:: php
+
+    $defaultSetting = [
+        $colId => [ 'hidden' => true ],
+        ...
+    ]
