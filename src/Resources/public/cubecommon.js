@@ -201,6 +201,8 @@ if (typeof(cubetools) === 'undefined') {
         var id = $(this).closest('form').find('input[name=id]').val();
         var btn = cs.getButtonForId(id);
         btn.popover('hide');
+
+        return false;
     };
 
     bootstrap.updateColumnHidden = function (/* event */) {
