@@ -185,7 +185,8 @@ if (typeof(cubetools) === 'undefined') {
                 var columnFields = formFieldsTemplate.clone().show();
                 var colData = hidableCols[colId];
                 var inpId = 'inp'+id+'_'+colId;
-                columnFields.find('label').attr('for', inpId).children(':not(:input)').eq(0).text($('#'+colId).text());
+                var colLabel = $('#'+colId).text() || '???';
+                columnFields.find('label').attr('for', inpId).children(':not(:input)').eq(0).text(colLabel);
                 columnFields.find('input').attr('name', colId).attr('id', inpId).attr('checked', !colData.hidden);
                 fieldParent.append(columnFields);
             }
