@@ -59,7 +59,8 @@ if (typeof(cubetools) === 'undefined') {
             var settings = {}; // own variable for keeping the column order
             tbl.find('tr').eq(0).children('td, th').each( function(i) {
                 var col = $(this);
-                if (col.filter('[id^=col]').length > 0) {
+                if (col.hasClass('noHideCol')) { // skip this
+                } else if (col.filter('[id^=col]').length > 0) {
                     var colId = col.attr('id');
                     var cSettings = setSettings[colId] || {};
                     cSettings.colId = colId;

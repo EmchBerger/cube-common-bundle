@@ -11,6 +11,12 @@ Mark columns to allow hiding:
  Do the following on the topmost cell:
    id="colxxx"
 
+to prevent hiding when above matches:
+
++---------------------------+---------------------------+----------+
+| class="noHideCol"         | set class "noHideCol"     | (always) |
++---------------------------+---------------------------+----------+
+
 Mark columns when colspan is used
 ---------------------------------
 
