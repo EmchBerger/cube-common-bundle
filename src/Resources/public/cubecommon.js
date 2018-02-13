@@ -73,6 +73,11 @@ if (typeof(cubetools) === 'undefined') {
                             colSel = tblSel + ' tr .' + colClass;
                         }
                     }
+                    if (settings[colId]) {
+                        console.error('Config error: column with id "'+colId+'" is already configured');
+                        return; // go to next column
+                    }
+
                     if (!colSel) {
                         var colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
                         colSel += ', ' + colSel.replace(' td:', ' th:');
