@@ -15,6 +15,8 @@ Variants to mark columns to allow to hide, do the following on the topmost cell:
 +=============================+==============================================+========================================+
 | id="colXxxx"                | set id beginning with col + uppercase letter | id_colXx (is default)                  |
 +-----------------------------+----------------------------------------------+----------------------------------------+
+| id="xxxCol"                 | set id ending with Col                       | id_xCol                                |
++-----------------------------+----------------------------------------------+----------------------------------------+
 
 to prevent hiding when above matches:
 

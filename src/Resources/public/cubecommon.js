@@ -47,6 +47,21 @@ if (typeof(cubetools) === 'undefined') {
         return null;
     };
 
+    /**
+     * Check if id matches ".*Col", for initializeColsSelection().
+     *
+     * @param {jQuery} col topmost cell (td/th) of column
+     *
+     * @returns {String|null}
+     */
+    var isMatchingIdXCol = function (col)
+    {
+        if (col.is('[id$=Col]')) {
+            return col.attr('id');
+        }
+        return null;
+    };
+
     cs.initializeColsSelection = function (settingsOfTables, columnType)
     {
         // initialize selectors
@@ -59,6 +74,9 @@ if (typeof(cubetools) === 'undefined') {
             case '':
             case 'id_colXx':
                 matchFn = isMatchingIdColXx;
+                break;
+            case 'id_xCol':
+                matchFn = isMatchingIdXCol;
                 break;
             default:
                 if (true) {
