@@ -79,6 +79,22 @@ if (typeof(cubetools) === 'undefined') {
         return null;
     };
 
+    /**
+     * Check if class is the specified one, for initializeColsSelection().
+     *
+     * @param {String} className name of the class to check for
+     * @param {jQuery} col       topmost cell (td/th) of column
+     *
+     * @returns {String|null}
+     */
+    var isMatchingClass = function (className, col)
+    {
+        if (col.hasClass(className)) {
+            return SET_ID_LATER;
+        }
+        return null;
+    };
+
     cs.initializeColsSelection = function (settingsOfTables, columnType)
     {
         // initialize selectors
@@ -86,7 +102,7 @@ if (typeof(cubetools) === 'undefined') {
         $(document.head).append(styleNode);
         columnStyle = styleNode[0].sheet;
         var selectorBtns = $('.colsSelector');
-        var matchFn;
+        var matchFn, markClassName;
         switch (columnType) {
             case '':
             case 'id_colXx':
@@ -99,7 +115,12 @@ if (typeof(cubetools) === 'undefined') {
                 matchFn = isMatchingClassXCol;
                 break;
             default:
-                if (true) {
+                if (0 === columnType.indexOf('class_')) { // ~startsWith
+                    markClassName = columnType.substring(6);
+                    matchFn = function (col) {
+                        return isMatchingClass(markClassName, col)
+                    }
+                } else {
                     console.error('Config error: column type "' + columnType + '" is not supported!');
                     return;
                 }
@@ -132,21 +153,30 @@ if (typeof(cubetools) === 'undefined') {
                     var colSel;
                     if (col.attr('class')) {
                         var colClass = col.attr('class').split(' ').find(function (el) {
-                            return
+                            return el !== markClassName && (
                                 0 === el.indexOf('col') || // ~startsWith
                                 el.length - 3 === el.indexOf('Col') // ~endsWith
-                            ;
+                            );
                         });
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
                             if (SET_ID_LATER === colId) {
-                                colId = colClass;
-                                if ($('#'+colId).length > 0) {
-                                    console.warn('Column with class '+colClass+' can not be identified unique.');
-                                    return; // go to next column
+                                if ($('#'+colClass).length > 0) { // not unique
+                                    var otherSame = $('#'+colId);
+                                    if (otherSame.hasClass(colId) && otherSame.closest('tr') === col.closest('tr')) {
+                                         // same class in same tr, to hide as one group
+
+                                        return; // go to next column
+                                    } // else => create new id
+                                } else {
+                                    colId = colClass;
+                                    col.attr('id', colId);
                                 }
-                                col.attr('id', colId);
                             }
+                        }
+                        if (SET_ID_LATER === colId) {
+                            colId = 'colSelHidableColumn_t' + tbl.attr('id') + '_c' + i;
+                            col.attr('id', colId); // set auto column id
                         }
                     }
                     if (settings[colId]) {
