@@ -32,13 +32,40 @@ if (typeof(cubetools) === 'undefined') {
     var tableSettings = {};
     var columnStyle = null;
 
-    cs.initializeColsSelection = function (settingsOfTables)
+    /**
+     * Check if id matches "col[A-Z].*", for initializeColsSelection().
+     *
+     * @param {jQuery} col topmost cell (td/th) of column
+     *
+     * @returns {String|null}
+     */
+    var isMatchingIdColXx = function (col)
+    {
+        if (col.is('[id^=col]') && col.attr('id').charAt(3).toUpperCase() === col.attr('id').charAt(3)) {
+            return col.attr('id');
+        }
+        return null;
+    };
+
+    cs.initializeColsSelection = function (settingsOfTables, columnType)
     {
         // initialize selectors
         var styleNode = $('<style type="text/css" title="colHideStyles">');
         $(document.head).append(styleNode);
         columnStyle = styleNode[0].sheet;
         var selectorBtns = $('.colsSelector');
+        var matchFn;
+        switch (columnType) {
+            case '':
+            case 'id_colXx':
+                matchFn = isMatchingIdColXx;
+                break;
+            default:
+                if (true) {
+                    console.error('Config error: column type "' + columnType + '" is not supported!');
+                    return;
+                }
+        }
         selectorBtns.each(function () {
             var btn = $(this);
             var id = btn.attr('id') || '';
@@ -60,7 +87,10 @@ if (typeof(cubetools) === 'undefined') {
             tbl.find('tr').eq(0).children('td, th').each( function(i) {
                 var col = $(this);
                 if (col.hasClass('noHideCol')) { // skip this
-                } else if (col.filter('[id^=col]').length > 0) {
+                } else {
+                    colId = matchFn(col);
+                }
+                if (colId) {
                     var colId = col.attr('id');
                     var cSettings = setSettings[colId] || {};
                     cSettings.colId = colId;

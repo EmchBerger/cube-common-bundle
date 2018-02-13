@@ -8,8 +8,13 @@ Multiple pages and multiple tables per page are supported.
 Mark columns to allow hiding:
 -----------------------------
 
- Do the following on the topmost cell:
-   id="colxxx"
+Variants to mark columns to allow to hide, do the following on the topmost cell:
+
++-----------------------------+----------------------------------------------+----------------------------------------+
+| add html attribute          | description                                  | value for afterColumnSelectionTables() |
++=============================+==============================================+========================================+
+| id="colXxxx"                | set id beginning with col + uppercase letter | id_colXx (is default)                  |
++-----------------------------+----------------------------------------------+----------------------------------------+
 
 to prevent hiding when above matches:
 
@@ -45,7 +50,7 @@ Somewhere after all tables, you initialise all the setting with a macro call:
 
   .. code-block:: twig
 
-    {{ colSel.afterColumnSelectionTables() }}
+    {{ colSel.afterColumnSelectionTables(optionalColumnType|default('id_colXx')) }} {# see value from above #}
 
 It is handy if you do this in a macro as well (to spare macro imports).
 
@@ -59,9 +64,9 @@ Define it as a macro
 
   .. code-block:: twig
 
-    {% macro afterColumnSelectionTables() %}
+    {% macro afterColumnSelectionTables(optionalColumnType) %}
         {% import 'CubeToolsCubeCommonBundle:ColumnSelector:columnSelector.macro.twig' as colSel %}
-        {{ colSel.afterColumnSelectionTables() }}
+        {{ colSel.afterColumnSelectionTables(optionalColumnType|default('id_colXx')) }}
         <script> /*colSel filterHelper*/
             $(document).ready(function () {
                 cubetools.colsSelector.initializeBootstrapPopover(

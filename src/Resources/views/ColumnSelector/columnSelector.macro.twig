@@ -5,7 +5,7 @@
     )) }}
 {% endmacro %}
 
-{% macro afterColumnSelectionTables() %}
+{% macro afterColumnSelectionTables(columnType) %}
     <script> /*colSettings*/
     (function () {
         if (typeof(cubetools) === 'undefined') {
@@ -22,7 +22,7 @@
                 cs.initializeColsSelection({{ render(controller(
                     'CubeToolsCubeCommonBundle:ColumnSelector:getTablesSettings',
                     {'path': app.request.getPathInfo()}
-                )) }});
+                )) }}, "{{ columnType|default('id_colXx') }}");
             }
         });
     })();
