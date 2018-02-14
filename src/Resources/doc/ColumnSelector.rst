@@ -27,6 +27,8 @@ to prevent hiding when above matches:
 +---------------------------+---------------------------+----------+
 | class="noHideCol"         | set class "noHideCol"     | (always) |
 +---------------------------+---------------------------+----------+
+| style="...visibility=..." | set some visibility style | (always) |
++---------------------------+---------------------------+----------+
 
 Mark columns when colspan is used
 ---------------------------------

@@ -145,7 +145,7 @@ if (typeof(cubetools) === 'undefined') {
             var settings = {}; // own variable for keeping the column order
             tbl.find('tr').eq(0).children('td, th').each( function(i) {
                 var col = $(this);
-                if (col.hasClass('noHideCol')) { // skip this
+                if (col.hasClass('noHideCol') || col.is('[style*=visibility]')) { // skip this
                 } else {
                     colId = matchFn(col);
                 }
