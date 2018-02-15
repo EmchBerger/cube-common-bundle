@@ -290,6 +290,10 @@ class DataDogAudit extends AbstractBaseAudit
 
         $label = $this->getLabelForAssociation($currentVersion->getSource());
         $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), false);
+        if ($label === $oldLabel) {
+            return; // change not visible to this entity
+        }
+
         // update the label for all registered attributes
         foreach ($this->instanceCache['currentAttributes'][$assocClass][$id] as $attrName => $registered) {
             if ($registered <= 0) {
