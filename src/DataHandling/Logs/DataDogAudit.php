@@ -76,7 +76,9 @@ class DataDogAudit extends AbstractBaseAudit
 
         $qb = $this->auditQueries->createAuditLogQb($id, $class);
         foreach ($assocClasses as $assocClass => $ids) {
-            $this->auditQueries->extendAuditLogWithAttributeQb($qb, $assocClass, $ids);
+            if ($ids) {
+                $this->auditQueries->extendAuditLogWithAttributeQb($qb, $assocClass, $ids);
+            }
         }
 
         return $qb;
