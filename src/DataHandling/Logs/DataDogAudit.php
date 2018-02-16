@@ -369,7 +369,9 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function filterFinalResult(array $diffArray)
     {
-        if (empty($this->instanceCache['insertCalled'])) {
+        if ((empty($this->instanceCache['insertCalled']) && // insert not called &&
+            isset($this->instanceCache['insertCalled'])) // value is false => data was added
+        ) {
             // insert call missing, incomplete log => update placeholder
             $diffArray[self::UNKNOWN_VERSION_CHANGE] = array(
             'changes' => array('  ' => 'unknown document versions before'),
