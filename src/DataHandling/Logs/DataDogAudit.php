@@ -333,12 +333,20 @@ class DataDogAudit extends AbstractBaseAudit
             $assocClass = $currentVersion->getTarget()->getClass();
             $columnName = $this->getAttributeNameForNtoN($currentVersion);
 
-            --$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
-            if (0 === $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName]) {
+            if (isset($this->instanceCache['currentAttributes'][$assocClass][$id][$columnName])) {
+                $registered = --$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
+            } else { // auditLog was likely enabled after entity creation
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 0;
+                $registered = 0;
+            }
+            if (0 === $registered) {
                 // no more registered => => set as change (dissociate)
                 $oldLabel = $this->getLabelForAssociation($currentVersion->getTarget());
                 $diffElement[$columnName][self::KEY_REMOVE][$id] = $oldLabel;
+            } elseif ($registered < 0) {
+                throw new \LogicException('registered for "'.$columnName.'" may not be < 0. It is '.$registered);
             }
+
         } else {
             throw new \LogicException('Action '.$currentVersion->getAction().' is not supported by this method.');
         }
