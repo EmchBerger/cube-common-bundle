@@ -19,6 +19,9 @@ class DataDogAudit extends AbstractBaseAudit
     const KEY_MODIFY_NEW = self::KEY_ADD;
     const KEY_MODIFY_OLD = self::KEY_REMOVE;
 
+    const REMOVE_PARAMETER_NAME = ' element deleted';
+    const REMOVE_TEXT = 'element is deleted';
+
     /**
      * @var ObjectManager
      */
@@ -230,7 +233,13 @@ class DataDogAudit extends AbstractBaseAudit
             // other side of association
             $this->handleOtherAttributeSideChange($currentVersion, $diffElement);
         } elseif (!$currentVersion->getDiff()) {
-            $this->handleAssociateDissociate($currentVersion, $diffElement);
+            if ($currentVersion->getTarget()) {
+                $this->handleAssociateDissociate($currentVersion, $diffElement);
+            } elseif ('remove' === $currentVersion->getAction()) {
+                $this->removeThisEntity($currentVersion, $diffElement);
+            } else {
+                $this->logicWrong('Action '.$currentVersion->getAction().' is not supported here (with no diff).');
+            }
         } else {
             if ('insert' === $currentVersion->getAction()) {
                 if (!isset($this->instanceCache['insertCalled'])) {
@@ -357,6 +366,41 @@ class DataDogAudit extends AbstractBaseAudit
             }
         } else {
             $this->logicWrong('Action '.$currentVersion->getAction().' is not supported by this method.');
+        }
+    }
+
+    /**
+     * Note in the $diffElement the removal of the logged entity.
+     *
+     * @todo Select a good default behaviour, current one may be unhandy. Unstable functionality!
+     * Default behaviour:
+     *
+     * Writes in the $diffElement that the value is deleted.
+     * What is written instead of a parameter name can be configured by `$options['parameter_name']` (default is
+     * `static::REMOVE_PARAMETER_NAME`). The text used instad of a parameter value is read from
+     * $options['parameter_value']
+     *
+     * Removing other changes noted for the same time is disabled (enable by setting `$options['only_remove']` to true).
+     *
+     * Associations are not tracked any longer (to track on, set $options['track_attributes'] = true).
+     *
+     * Can be override for customization needs.
+     *
+     * @param AuditLog $currentVersion AuditLog with associate / dissociate (source is this class)
+     * @param array    $diffElement    where the result is written
+     * @param array    $options        empty normally, for simple adapting by callling from subclasses
+     */
+    protected function removeThisEntity(AuditLog $currentVersion, array &$diffElement, array $options = array())
+    {
+        if (isset($options['only_remove']) && false === $options['only_remove']) {
+            $diffElement = array();
+        }
+        $key = isset($options['parameter_name']) ? $options['parameter_name'] : static::REMOVE_PARAMETER_NAME;
+        $value = isset($options['parameter_value']) ? $options['parameter_value'] : static::REMOVE_TEXT;
+        $diffElement[$key] = $value;
+
+        if (!empty($options['track_attributes'])) {
+            $this->instanceCache['currentAttributes'] = array();
         }
     }
 
