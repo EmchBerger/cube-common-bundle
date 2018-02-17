@@ -352,11 +352,11 @@ class DataDogAudit extends AbstractBaseAudit
                     $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 1;
                 }
             } elseif ($registered < 0) {
-                throw new \LogicException('registered for "'.$columnName.'" may not be < 0. It is '.$registered);
+                $this->logicWrong('registered for "'.$columnName.'" may not be < 0. It is '.$registered);
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 0;
             }
-
         } else {
-            throw new \LogicException('Action '.$currentVersion->getAction().' is not supported by this method.');
+            $this->logicWrong('Action '.$currentVersion->getAction().' is not supported by this method.');
         }
     }
 
@@ -444,7 +444,9 @@ class DataDogAudit extends AbstractBaseAudit
             }
         }
 
-        throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
+        $this->logicWrong(sprintf('no association for %s found.', $joinTableName));
+
+        return ' '.$currentVersion->getTbl(); // some fallback
     }
 
     protected function getAttributeNameFor1toN(AuditLog $currentVersion, $otherAttrName)
@@ -546,6 +548,16 @@ class DataDogAudit extends AbstractBaseAudit
         if ($ids) {
             $this->auditQueries->extendAuditLogWithAttributeQb($qb, $attributeClass, $ids);
         }
+    }
+
+    /**
+     * Reports a non-fatal logic exception, only shown in debug mode.
+     *
+     * @param string $message
+     */
+    protected function logicWrong($message)
+    {
+        trigger_error('LogicException: '.$message, E_USER_WARNING);
     }
 
     /**
