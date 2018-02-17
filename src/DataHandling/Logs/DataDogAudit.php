@@ -340,9 +340,17 @@ class DataDogAudit extends AbstractBaseAudit
                 $registered = 0;
             }
             if (0 === $registered) {
-                // no more registered => => set as change (dissociate)
+                // no more registered => set as change (dissociate)
                 $oldLabel = $this->getLabelForAssociation($currentVersion->getTarget());
                 $diffElement[$columnName][self::KEY_REMOVE][$id] = $oldLabel;
+
+                if (isset($diffElement[$columnName][self::KEY_ADD][$id]) &&
+                    $oldLabel === $diffElement[$columnName][self::KEY_ADD][$id] &&
+                    empty($this->instanceCache['insertCalled'])
+                ) { // likely associate + dissociate the same, when 1st association is missing
+                    // write this once (as uncertainity), then go to a stable level
+                    $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 1;
+                }
             } elseif ($registered < 0) {
                 throw new \LogicException('registered for "'.$columnName.'" may not be < 0. It is '.$registered);
             }
