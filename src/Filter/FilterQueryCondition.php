@@ -15,7 +15,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     private $filter = array();
 
     /**
-     * @var QueryBuilder
+     * @var \Doctrine\ORM\QueryBuilder
      */
     private $qb;
 
@@ -144,7 +144,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Sets the query builder for creating filter queries later.
      *
-     * @param QueryBuilder $qb
+     * @param \Doctrine\ORM\QueryBuilder $qb
      *
      * @return $this
      */
