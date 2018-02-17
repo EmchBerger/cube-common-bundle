@@ -12,6 +12,7 @@ services:
         arguments:
             - "@doctrine"
             - "@security.token_storage"
+            - "@event_dispatcher"
     CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage: '@cube_common.user_settings'
     cube_common.filtering:
         class: CubeTools\CubeCommonBundle\Filter\FilterService

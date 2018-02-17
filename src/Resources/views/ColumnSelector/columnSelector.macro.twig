@@ -1,11 +1,11 @@
-{% macro nearButton(id) %}
+{% macro nearButton(btnId) %}
     {{ render(controller(
         'CubeToolsCubeCommonBundle:ColumnSelector:nearButton',
-        {'path': app.request.getPathInfo(), 'id': id|default('')}
+        {'path': app.request.getPathInfo(), 'btnId': btnId|default('')}
     )) }}
 {% endmacro %}
 
-{% macro afterColumnSelectionTables() %}
+{% macro afterColumnSelectionTables(columnType) %}
     <script> /*colSettings*/
     (function () {
         if (typeof(cubetools) === 'undefined') {
@@ -22,7 +22,7 @@
                 cs.initializeColsSelection({{ render(controller(
                     'CubeToolsCubeCommonBundle:ColumnSelector:getTablesSettings',
                     {'path': app.request.getPathInfo()}
-                )) }});
+                )) }}, "{{ columnType|default('id_colXx') }}");
             }
         });
     })();
