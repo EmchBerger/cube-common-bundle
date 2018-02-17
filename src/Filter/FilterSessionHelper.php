@@ -99,15 +99,14 @@ class FilterSessionHelper
         if ('1' == $request->query->get('filter_reset')) {
             self::setFilterDataToSession($session, $pageName, array(), null);
 
-            return array('redirect' => $request->getBaseUrl().$request->getPathInfo());
+            return array('redirect' => static::getRedirectUrl($request, array('filter_reset')));
         }
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             // use all() because getViewData() returns the forms viewdata but not the elements
             self::setFilterDataToSession($session, $pageName, $form->all(), $onSuccessKeepFn);
             if ($request->getMethod() !== 'GET') {
-                return array('redirect' => $request->getBaseUrl().$request->getPathInfo());
-                    // do not use getRequestUri because includes the query parameter (?page=3)
+                return array('redirect' => static::getRedirectUrl($request));
             }
             $filter = $form->getData();
         } else {
@@ -258,5 +257,31 @@ class FilterSessionHelper
             return (string)$keys[0];
         }
         return '';
+    }
+
+    private static function getRedirectUrl(Request $request, array $additionalKeys = array())
+    {
+        $noParam = count($request->query);
+        if (0 === $noParam) {
+            $redirectUri = $request->getRequestUri();
+        } else {
+            $query = clone $request->query;
+            foreach (array('page', 'sort', 'direction') as $param) {
+                $query->remove($param);
+            }
+            foreach ($additionalKeys as $param) {
+                $query->remove($param);
+            }
+            $noQueryUri = $request->getBaseUrl().$request->getPathInfo();
+            if (0 === count($query)) { // no query parameters
+                $redirectUri = $noQueryUri;
+            } elseif (count($query) === $noParam) { // same query parameters
+                $redirectUri = $request->getRequestUri();
+            } else {
+                $redirectUri = Request::create($noQueryUri, 'GET', $query->all())->getRequestUri();
+            }
+        }
+
+        return $redirectUri;
     }
 }

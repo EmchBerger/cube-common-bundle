@@ -74,3 +74,10 @@ doctrine:
         resolve_target_entities:
             Symfony\Component\Security\Core\User\UserInterface: YourBundle\Entity\YourUser
 ```
+
+Use the bundle
+--------------
+
+Do some index page [filtering](./src/Resources/doc/Filter.rst),
+hide table columns dynamically with [ColumnSelector](./src/Resources/doc/ColumnSelector.rst),
+or use another functionality (see in [src](./src)).

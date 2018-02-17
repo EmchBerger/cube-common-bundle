@@ -2,6 +2,7 @@
 
 namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 
+use CubeTools\CubeCommonBundle\DataHandling\StringHelper;
 use DataDog\AuditBundle\Entity\AuditLog;
 use DataDog\AuditBundle\Entity\Association;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -16,6 +17,7 @@ class DataDogAudit extends AbstractBaseAudit
 
     const TEMP_KEY_READD = 'temp_readd';
     const TEMP_KEY_OLDVAL = 'temp_oldval';
+    const UNKNOWN_VERSION_CHANGE = 'unknown version';
 
     /**
      * @var ObjectManager
@@ -121,13 +123,13 @@ class DataDogAudit extends AbstractBaseAudit
     /**
      * Creates the diff format from related AuditLogs.
      *
-     * @param AuditLog[]|\Iterable|QueryBuilder $entityVersions
+     * @param AuditLog[]|iterable|QueryBuilder $entityVersions
      *
      * @return mixed[] {@see getAllVersionsDiff()}
      */
     protected function auditLogToDiff($entityVersions)
     {
-        $diffArray = array();
+        $diffArray = array(self::UNKNOWN_VERSION_CHANGE => array());
         if ($entityVersions instanceof QueryBuilder) {
             $entityVersions = $entityVersions->getQuery()->getResult();
         }
@@ -246,12 +248,21 @@ class DataDogAudit extends AbstractBaseAudit
                     unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
                 }
                 $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
+                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
+                } // else log started in the middle, incomplete
             } else {    // when dissociate and associate on same element that means, that it was before
                 unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
                 $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
             }
         } else {
+            if ('insert' === $currentVersion->getAction()) {
+                if (!isset($this->instanceCache['insertCalled'])) {
+                    $this->instanceCache['insertCalled'] = true;
+                }
+            } elseif (!isset($this->instanceCache['insertCalled'])) { // update/... before insert
+                $this->instanceCache['insertCalled'] = false;
+            }
             foreach ($currentVersion->getDiff() as $columnName => $diffValue) {
                 if (isset($diffValue['new']['label'])) {
                     // ManyToOne relation has changed
@@ -274,6 +285,16 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function filterFinalResult(array $diffArray)
     {
+        if (empty($this->instanceCache['insertCalled'])) {
+            // insert call missing, incomplete log => update placeholder
+            $diffArray[self::UNKNOWN_VERSION_CHANGE] = array(
+            'changes' => array('  ' => 'unknown document versions before'),
+            'savedBy' => 'UNKNOWN USER',
+            'savedAt' => new \DateTime('1970-01-01 00:00'),
+            );
+        } else {
+            unset($diffArray[self::UNKNOWN_VERSION_CHANGE]); // complete log, remove placeholder
+        }
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue['changes']) as $columnName) {
                 $currentElement = $diffArray[$versionKey]['changes'][$columnName];
@@ -346,7 +367,7 @@ class DataDogAudit extends AbstractBaseAudit
 
     protected function getLabelForAssociation(Association $assoc)
     {
-        return $assoc->getLabel();
+        return StringHelper::indicateStrippedKeepSize($assoc->getLabel(), 255); // 255 is the labels column size
     }
 
     /**
@@ -393,9 +414,8 @@ class DataDogAudit extends AbstractBaseAudit
             ->join('al.source', 's')
             ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
             ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°' OR al.diff LIKE :diffLikeClsN ESCAPE '°'")
+            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
             ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-            ->setParameter('diffLikeClsN', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":'.$entId.',%') // numeric fk
         ;
         $i = 1;
         foreach ($additionalConditions as $condition) {

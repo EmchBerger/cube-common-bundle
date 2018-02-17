@@ -70,6 +70,11 @@ class FilterSessionHelperTest extends FormIntegrationTestCase // this class has 
 
         $d = FilterSessionHelper::getFilterData($mReq, $form, 'pageName_gfdr', static::NO_ON_SUCCESS_KEEP_FN);
         $this->assertSame($thisUrl, $d['redirect']);
+
+        $mReq2 = Request::create($thisUrl, 'GET', array('filter_reset' => 1, 'bla' => 'hi'));
+        $mReq2->setSession($mSes);
+        $d2 = FilterSessionHelper::getFilterData($mReq2, $form, 'pageName_gfdr', static::NO_ON_SUCCESS_KEEP_FN);
+        $this->assertSame($thisUrl.'?bla=hi', $d2['redirect']);
     }
 
     public function testGetFilterData()

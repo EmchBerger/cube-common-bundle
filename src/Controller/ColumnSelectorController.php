@@ -102,6 +102,8 @@ class ColumnSelectorController extends Controller
     /**
      * Create the saveId for the given ids.
      *
+     * When the id starts with 'X:', it is taken directly as id without the path
+     *
      * @param string $path relative page path
      * @param string $id   id of table (button) on the page
      *
@@ -109,8 +111,8 @@ class ColumnSelectorController extends Controller
      */
     protected function getId($path, $id)
     {
-        if ($id && '~' === $id[0]) {
-            return substr($id, 1);
+        if ($id && 'X' === $id[0] && ':' === $id[1]) {
+            return substr($id, 2);
         }
 
         return $path.'~'.$id;
