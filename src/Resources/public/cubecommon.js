@@ -151,13 +151,20 @@ if (typeof(cubetools) === 'undefined') {
                 }
                 if (colId) {
                     var colSel;
-                    if (col.attr('class')) {
+                    var matchColClassFn;
+                    if (col.is('[class$=Col]')) {
+                        matchColClassFn = function(candidateClass) {
+                            return el.length - 3 === el.indexOf('Col'); // ~endsWith
+                        };
+                    } else if (col.is('[class^=col]')) {
+                        matchColClassFn = function(candidateClass) {
+                            return 0 === candidateClass.indexOf('col'); // ~startsWith
+                        };
+                    }
+                    if (matchColClassFn) {
                         var colClass;
                         for (var el in col.attr('class').split(' ')) {
-                            if ( el !== markClassName && (
-                                0 === el.indexOf('col') || // ~startsWith
-                                el.length - 3 === el.indexOf('Col') // ~endsWith
-                            )) {
+                            if ( el !== markClassName && matchColClassFn(el)) {
                                 colClass = el;
                                 break;
                             }
