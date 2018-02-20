@@ -152,12 +152,16 @@ if (typeof(cubetools) === 'undefined') {
                 if (colId) {
                     var colSel;
                     if (col.attr('class')) {
-                        var colClass = col.attr('class').split(' ').find(function (el) {
-                            return el !== markClassName && (
+                        var colClass;
+                        for (var el in col.attr('class').split(' ')) {
+                            if ( el !== markClassName && (
                                 0 === el.indexOf('col') || // ~startsWith
                                 el.length - 3 === el.indexOf('Col') // ~endsWith
-                            );
-                        });
+                            )) {
+                                colClass = el;
+                                break;
+                            }
+                        }
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
                             if (SET_ID_LATER === colId) {
