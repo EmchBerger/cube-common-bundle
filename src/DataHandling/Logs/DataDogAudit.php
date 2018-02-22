@@ -299,7 +299,12 @@ class DataDogAudit extends AbstractBaseAudit
 
         $label = $this->getLabelForAssociation($currentVersion->getSource());
         $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), false);
-        if ($label === $oldLabel) {
+        if ($label !== $oldLabel) {
+            // a real change
+        } elseif (strlen($label) === 255) {
+            // limitation: if the label is trucated, the change is maybe hidden
+            // therefore currently show anyway
+        } else {
             return; // change not visible to this entity
         }
 
