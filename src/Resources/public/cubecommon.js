@@ -154,7 +154,7 @@ if (typeof(cubetools) === 'undefined') {
                     var matchColClassFn;
                     if (col.is('[class$=Col]')) {
                         matchColClassFn = function(candidateClass) {
-                            return el.length - 3 === el.indexOf('Col'); // ~endsWith
+                            return candidateClass.length - 3 === candidateClass.lastIndexOf('Col'); // ~endsWith
                         };
                     } else if (col.is('[class^=col]')) {
                         matchColClassFn = function(candidateClass) {
@@ -163,9 +163,10 @@ if (typeof(cubetools) === 'undefined') {
                     }
                     if (matchColClassFn) {
                         var colClass;
-                        for (var el in col.attr('class').split(' ')) {
-                            if ( el !== markClassName && matchColClassFn(el)) {
-                                colClass = el;
+                        var colClasses = col.attr('class').split(' ');
+                        for (var i in colClasses) {
+                            if ( colClasses[i] !== markClassName && matchColClassFn(colClasses[i])) {
+                                colClass = colClasses[i];
                                 break;
                             }
                         }
