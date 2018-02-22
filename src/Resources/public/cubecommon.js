@@ -21,11 +21,19 @@ if (typeof(cubetools) === 'undefined') {
 
     var updateOneCol = function(table, colSettings, hide)
     {
-        var rule = columnStyle.cssRules.item(colSettings.ruleNo);
+        var cellsRule = columnStyle.cssRules.item(colSettings.ruleNo);
+        var colGroupRule = columnStyle.cssRules.item(colSettings.ruleNo + 1);
         if (hide) {
-            rule.style.display = 'none';
+            // for some browsers, it is enough to set collapse on col
+            colGroupRule.style.setProperty('visibility', 'collapse', 'important');
+            // for the others, we set visibility and size 0 to the cells
+            cellsRule.style.setProperty('visibility', 'hidden', 'important');
+            cellsRule.style.setProperty('width', '0px', 'important');
+            // looks not necessary set padding and margin to 0 also
         } else {
-            rule.style.display = '';
+            colGroupRule.style.visibility = '';
+            cellsRule.style.visibility = '';
+            cellsRule.style.width = '';
         }
     };
 
@@ -164,7 +172,7 @@ if (typeof(cubetools) === 'undefined') {
                     colId = matchFn(col);
                 }
                 if (colId) {
-                    var colSel;
+                    var colSel, colGroupSel;
                     var matchColClassFn;
                     if (col.is('[class$=Col]')) {
                         matchColClassFn = function(candidateClass) {
@@ -186,6 +194,7 @@ if (typeof(cubetools) === 'undefined') {
                         }
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
+                            colGroupSel = colSel.replace(' tr ', ' colgroup ');
                             if (SET_ID_LATER === colId) {
                                 if ($('#'+colClass).length > 0) { // not unique
                                     var otherSame = $('#'+colId);
@@ -215,11 +224,13 @@ if (typeof(cubetools) === 'undefined') {
                     cSettings.colId = colId;
                     cSettings.colNo = i + 1;
                     if (!colSel) {
-                        var colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
+                        colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
+                        colGroupSel = colSel.replace(' tr ', ' colgroup ').replace(' td:', ' col:');
                         colSel += ', ' + colSel.replace(' td:', ' th:');
                     }
                     columnStyle.insertRule(colSel+' {}', columnStyle.cssRules.length);
                     cSettings.ruleNo = columnStyle.cssRules.length - 1;
+                    columnStyle.insertRule(colGroupSel + ' {}', columnStyle.cssRules.length);
                     settings[colId] = cSettings;
                 }
                 colNo += cellColspan;
