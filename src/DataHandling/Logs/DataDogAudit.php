@@ -484,7 +484,7 @@ class DataDogAudit extends AbstractBaseAudit
         }
 
         foreach ($this->getEntitiesClassMetaData()->getAssociationMappings() as $assMapping) {
-            if (isset($assMapping['joinTable'])) {
+            if (!empty($assMapping['joinTable'])) {
                 $assJoinTable = $assMapping['joinTable']['name'];
                 $this->cache['assocTable'][$assJoinTable] = $assMapping['fieldName'];
                 if ($joinTableName === $assJoinTable) {
