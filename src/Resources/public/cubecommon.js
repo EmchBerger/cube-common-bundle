@@ -14,12 +14,12 @@ if (typeof(cubetools) === 'undefined') {
         cols.each(function () {
             var colId = $(this).attr('id');
             if (hidableSettings[colId]) {
-                updateOneCol(table, hidableSettings[colId], hidableSettings[colId].hidden);
+                updateOneCol(hidableSettings[colId], hidableSettings[colId].hidden);
             }
         });
     };
 
-    var updateOneCol = function(table, colSettings, hide)
+    var updateOneCol = function(colSettings, hide)
     {
         var cellsRule = columnStyle.cssRules.item(colSettings.ruleNo);
         var colGroupRule = columnStyle.cssRules.item(colSettings.ruleNo + 1);
@@ -126,8 +126,8 @@ if (typeof(cubetools) === 'undefined') {
                 if (0 === columnType.indexOf('class_')) { // ~startsWith
                     markClassName = columnType.substring(6);
                     matchFn = function (col) {
-                        return isMatchingClass(markClassName, col)
-                    }
+                        return isMatchingClass(markClassName, col);
+                    };
                 } else {
                     console.error('Config error: column type "' + columnType + '" is not supported!');
                     return;
@@ -245,7 +245,7 @@ if (typeof(cubetools) === 'undefined') {
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
-        updateOneCol(table, settings[colId], hide);
+        updateOneCol(settings[colId], hide);
         settings[colId].hidden = hide;
         cs.saveHidableSettings(id, settings);
     };
@@ -279,7 +279,7 @@ if (typeof(cubetools) === 'undefined') {
                 }
             }
         } else {
-            var saveSettings = {}
+            var saveSettings = {};
             for (var i in settings) {
                 var toSave = $.extend({}, settings[i]);
                 delete toSave.colId;
