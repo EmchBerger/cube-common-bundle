@@ -143,8 +143,22 @@ if (typeof(cubetools) === 'undefined') {
             }
             var tblSel = '#' + tbl.attr('id');
             var settings = {}; // own variable for keeping the column order
-            tbl.find('tr').eq(0).children('td, th').each( function(i) {
+            var tblColgroup = tbl.find('colgroup');
+            if (0 === tblColgroup.length) {
+                tbl.prepend('<colgroup>');
+                tblColgroup = tbl.find('colgroup');
+            }
+            var colNo = 0;
+            tbl.find('tr').eq(0).children('td, th').each( function(/*i*/) {
                 var col = $(this);
+                var cellColspan = col.attr('colspan');
+                if ('undefined' === typeof cellColspan) {
+                    cellColspan = 1;
+                }
+                for (var i = 0; i < cellColspan; ++i) {
+                    tblColgroup.append('<col>');
+                }
+
                 if (col.hasClass('noHideCol') || col.is('[style*=visibility]')) { // skip this
                 } else {
                     colId = matchFn(col);
@@ -185,6 +199,7 @@ if (typeof(cubetools) === 'undefined') {
                                     col.attr('id', colId);
                                 }
                             }
+                            tblColgroup.children('col').eq(colNo).addClass(colClass);
                         }
                         if (SET_ID_LATER === colId) {
                             colId = 'colSelHidableColumn_t' + tbl.attr('id') + '_c' + i;
@@ -207,6 +222,7 @@ if (typeof(cubetools) === 'undefined') {
                     cSettings.ruleNo = columnStyle.cssRules.length - 1;
                     settings[colId] = cSettings;
                 }
+                colNo += cellColspan;
             });
             tableSettings[id] = settings;
             updateCols(tbl, settings);
