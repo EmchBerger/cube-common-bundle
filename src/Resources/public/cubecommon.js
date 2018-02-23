@@ -14,18 +14,27 @@ if (typeof(cubetools) === 'undefined') {
         cols.each(function () {
             var colId = $(this).attr('id');
             if (hidableSettings[colId]) {
-                updateOneCol(table, hidableSettings[colId], hidableSettings[colId].hidden);
+                updateOneCol(hidableSettings[colId], hidableSettings[colId].hidden);
             }
         });
     };
 
-    var updateOneCol = function(table, colSettings, hide)
+    var updateOneCol = function(colSettings, hide)
     {
-        var rule = columnStyle.cssRules.item(colSettings.ruleNo);
+        var cellsRule = columnStyle.cssRules.item(colSettings.ruleNo);
+        var colGroupRule = columnStyle.cssRules.item(colSettings.ruleNo + 1);
         if (hide) {
-            rule.style.display = 'none';
+            // for some browsers, it is enough to set collapse on col
+            colGroupRule.style.setProperty('visibility', 'collapse', 'important');
+            colGroupRule.style.setProperty('width', '0px', 'important');
+            // for the others, we set visibility and size 0 to the cells
+            cellsRule.style.setProperty('visibility', 'hidden', 'important');
+            cellsRule.style.setProperty('width', '0px', 'important');
+            // looks not necessary set padding and margin to 0 also
         } else {
-            rule.style.display = '';
+            colGroupRule.style.visibility = '';
+            cellsRule.style.visibility = '';
+            cellsRule.style.width = '';
         }
     };
 
@@ -118,8 +127,8 @@ if (typeof(cubetools) === 'undefined') {
                 if (0 === columnType.indexOf('class_')) { // ~startsWith
                     markClassName = columnType.substring(6);
                     matchFn = function (col) {
-                        return isMatchingClass(markClassName, col)
-                    }
+                        return isMatchingClass(markClassName, col);
+                    };
                 } else {
                     console.error('Config error: column type "' + columnType + '" is not supported!');
                     return;
@@ -143,23 +152,50 @@ if (typeof(cubetools) === 'undefined') {
             }
             var tblSel = '#' + tbl.attr('id');
             var settings = {}; // own variable for keeping the column order
-            tbl.find('tr').eq(0).children('td, th').each( function(i) {
+            var tblColgroup = tbl.find('colgroup');
+            if (0 === tblColgroup.length) {
+                tbl.prepend('<colgroup>');
+                tblColgroup = tbl.find('colgroup');
+            }
+            var colNo = 0;
+            tbl.find('tr').eq(0).children('td, th').each( function(/*i*/) {
                 var col = $(this);
+                var cellColspan = col.attr('colspan');
+                if ('undefined' === typeof cellColspan) {
+                    cellColspan = 1;
+                }
+                for (var i = 0; i < cellColspan; ++i) {
+                    tblColgroup.append('<col>');
+                }
+
                 if (col.hasClass('noHideCol') || col.is('[style*=visibility]')) { // skip this
                 } else {
                     colId = matchFn(col);
                 }
                 if (colId) {
-                    var colSel;
-                    if (col.attr('class')) {
-                        var colClass = col.attr('class').split(' ').find(function (el) {
-                            return el !== markClassName && (
-                                0 === el.indexOf('col') || // ~startsWith
-                                el.length - 3 === el.indexOf('Col') // ~endsWith
-                            );
-                        });
+                    var colSel, colGroupSel;
+                    var matchColClassFn;
+                    if (col.is('[class$=Col]')) {
+                        matchColClassFn = function(candidateClass) {
+                            return candidateClass.length - 3 === candidateClass.lastIndexOf('Col'); // ~endsWith
+                        };
+                    } else if (col.is('[class^=col]')) {
+                        matchColClassFn = function(candidateClass) {
+                            return 0 === candidateClass.indexOf('col'); // ~startsWith
+                        };
+                    }
+                    if (matchColClassFn) {
+                        var colClass;
+                        var colClasses = col.attr('class').split(' ');
+                        for (var i in colClasses) {
+                            if ( colClasses[i] !== markClassName && matchColClassFn(colClasses[i])) {
+                                colClass = colClasses[i];
+                                break;
+                            }
+                        }
                         if (colClass) {
                             colSel = tblSel + ' tr .' + colClass;
+                            colGroupSel = colSel.replace(' tr ', ' colgroup ');
                             if (SET_ID_LATER === colId) {
                                 if ($('#'+colClass).length > 0) { // not unique
                                     var otherSame = $('#'+colId);
@@ -173,6 +209,7 @@ if (typeof(cubetools) === 'undefined') {
                                     col.attr('id', colId);
                                 }
                             }
+                            tblColgroup.children('col').eq(colNo).addClass(colClass);
                         }
                         if (SET_ID_LATER === colId) {
                             colId = 'colSelHidableColumn_t' + tbl.attr('id') + '_c' + i;
@@ -188,13 +225,16 @@ if (typeof(cubetools) === 'undefined') {
                     cSettings.colId = colId;
                     cSettings.colNo = i + 1;
                     if (!colSel) {
-                        var colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
+                        colSel = tblSel + ' tr td:nth-child(' + cSettings.colNo+ ')';
+                        colGroupSel = colSel.replace(' tr ', ' colgroup ').replace(' td:', ' col:');
                         colSel += ', ' + colSel.replace(' td:', ' th:');
                     }
                     columnStyle.insertRule(colSel+' {}', columnStyle.cssRules.length);
                     cSettings.ruleNo = columnStyle.cssRules.length - 1;
+                    columnStyle.insertRule(colGroupSel + ' {}', columnStyle.cssRules.length);
                     settings[colId] = cSettings;
                 }
+                colNo += cellColspan;
             });
             tableSettings[id] = settings;
             updateCols(tbl, settings);
@@ -206,7 +246,7 @@ if (typeof(cubetools) === 'undefined') {
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
-        updateOneCol(table, settings[colId], hide);
+        updateOneCol(settings[colId], hide);
         settings[colId].hidden = hide;
         cs.saveHidableSettings(id, settings);
     };
@@ -240,7 +280,7 @@ if (typeof(cubetools) === 'undefined') {
                 }
             }
         } else {
-            var saveSettings = {}
+            var saveSettings = {};
             for (var i in settings) {
                 var toSave = $.extend({}, settings[i]);
                 delete toSave.colId;
