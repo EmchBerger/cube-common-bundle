@@ -30,12 +30,14 @@ if (typeof(cubetools) === 'undefined') {
             // for the others, we set visibility and size 0 to the cells
             cellsRule.style.setProperty('visibility', 'hidden', 'important');
             cellsRule.style.setProperty('width', '0px', 'important');
+            cellsRule.style.setProperty('line-height', '0px', 'important');
             // looks not necessary set padding and margin to 0 also
         } else {
             colGroupRule.style.visibility = '';
             colGroupRule.style.width = '';
             cellsRule.style.visibility = '';
             cellsRule.style.width = '';
+            cellsRule.style.setProperty('line-height', '');
         }
     };
 
