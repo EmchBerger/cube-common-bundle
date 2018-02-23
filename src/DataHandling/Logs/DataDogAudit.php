@@ -15,9 +15,13 @@ class DataDogAudit extends AbstractBaseAudit
 {
     use LogsFunctionsTrait;
 
-    const TEMP_KEY_READD = 'temp_readd';
-    const TEMP_KEY_OLDVAL = 'temp_oldval';
     const UNKNOWN_VERSION_CHANGE = 'unknown version';
+
+    const KEY_MODIFY_NEW = self::KEY_ADD;
+    const KEY_MODIFY_OLD = self::KEY_REMOVE;
+
+    const REMOVE_PARAMETER_NAME = ' element deleted';
+    const REMOVE_TEXT = 'element is deleted';
 
     /**
      * @var ObjectManager
@@ -34,9 +38,15 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $instanceCache = array();
 
+    /**
+     * @var DataDogAudit\AuditQueries
+     */
+    protected $auditQueries;
+
     public function __construct(ObjectManager $em)
     {
         $this->em = $em;
+        $this->auditQueries = new DataDogAudit\AuditQueries($em);
     }
 
     /**
@@ -53,18 +63,28 @@ class DataDogAudit extends AbstractBaseAudit
         $class = get_class($entity);
         $id = $entity;
 
-        $this->instanceCache = array(); // is only valid for one entity
+        $this->instanceCache = array(
+            'id' => $id,
+        ); // is only valid for one entity
         if ($class !== $this->cache['class']) {
             $this->cache = array('class' => $class);
         }
 
-        return $this->em->getRepository(AuditLog::class)
-            ->createQueryBuilder('a')
-            ->join('a.source', 's')
-            ->where('s.fk = :entity')->setParameter('entity', $id)
-            ->andWhere('s.class = :class')->setParameter('class', $class)
-            ->orderBy('a.id', 'ASC')
-        ;
+        $aQb = $this->auditQueries->createOwningSideQb($id, $class);
+
+        $assocClasses = array();
+        foreach ($aQb->getQuery()->getResult() as $infos) {
+            $assocClasses[$infos['class']][] = $infos['fk'];
+        }
+
+        $qb = $this->auditQueries->createAuditLogQb($id, $class);
+        foreach ($assocClasses as $assocClass => $ids) {
+            if ($ids) {
+                $this->auditQueries->extendAuditLogWithAttributeQb($qb, $assocClass, $ids);
+            }
+        }
+
+        return $qb;
     }
 
     public function getLastBlame($entity)
@@ -211,49 +231,15 @@ class DataDogAudit extends AbstractBaseAudit
         }
         $entityTable = $this->cache['entityTableName'];
         if ($currentVersion->getTbl() !== $entityTable && $currentVersion->getSource()->getTbl() !== $entityTable) {
-            // owning side of ManyToMany association, the side is not this entity
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getSource());
-            if ('insert' === $currentVersion->getAction()) {
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
-                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            // other side of association
+            $this->handleOtherAttributeSideChange($currentVersion, $diffElement);
+        } elseif (!$currentVersion->getDiff()) {
+            if ($currentVersion->getTarget()) {
+                $this->handleAssociateDissociate($currentVersion, $diffElement);
             } elseif ('remove' === $currentVersion->getAction()) {
-                $label = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $label;
-            } else { // update, (associate, dissociate)
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getSource()->getFk()] = $label;
-                $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), true);
-                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getSource()->getFk()] = $oldLabel;
-            }
-        } elseif ($currentVersion->getAction() === 'associate') {
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            $oldLabel = $this->getCachedAssociationValue($currentVersion->getTarget(), false);
-            if ($oldLabel === $label) { // same value is added, save to skip removing later
-                $diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()] = $label;
-            } else { // value has changed, save old value for the coming remove
-                $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                $diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()] = $label;
-                $this->setCachedAssociationValue($currentVersion->getTarget(), $label);
-            }
-        } elseif ($currentVersion->getAction() === 'dissociate') {
-            $columnName = $this->getColumnNameForAssociation($currentVersion);
-            $label = $this->getLabelForAssociation($currentVersion->getTarget());
-            if (!isset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()])) {
-                $oldLabel = $label;
-                if (isset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()])) {
-                    // get old label because dissociate got the new one
-                    $oldLabel = $diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()];
-                    unset($diffElement[$columnName][self::TEMP_KEY_OLDVAL][$currentVersion->getTarget()->getFk()]);
-                }
-                $diffElement[$columnName][self::KEY_REMOVE][$currentVersion->getTarget()->getFk()] = $oldLabel;
-                if (!isset($diffElement[$columnName][self::KEY_ADD][$currentVersion->getTarget()->getFk()])) {
-                    $this->getCachedAssociationValue($currentVersion->getTarget(), true /*delete*/);
-                } // else log started in the middle, incomplete
-            } else {    // when dissociate and associate on same element that means, that it was before
-                unset($diffElement[$columnName][self::TEMP_KEY_READD][$currentVersion->getTarget()->getFk()]);
-                $diffElement[$columnName][self::KEY_UNCHANGED][$currentVersion->getTarget()->getFk()] = $label;
+                $this->removeThisEntity($currentVersion, $diffElement);
+            } else {
+                $this->logicWrong('Action '.$currentVersion->getAction().' is not supported here (with no diff).');
             }
         } else {
             if ('insert' === $currentVersion->getAction()) {
@@ -277,6 +263,154 @@ class DataDogAudit extends AbstractBaseAudit
     }
 
     /**
+     * Update the $diffElement with the change of $currentVersion of an associated class.
+     *
+     * @param AuditLog $currentVersion AuditLog of associated class
+     * @param array    $diffElement    where the result is written
+     */
+    protected function handleOtherAttributeSideChange(AuditLog $currentVersion, array &$diffElement)
+    {
+        $id = $currentVersion->getSource()->getFk();
+        $assocClass = $currentVersion->getSource()->getClass();
+
+        // handle oneToMany associations
+        if ($currentVersion->getDiff() && isset($this->cache['oneToManyAssoc'][$assocClass])) {
+            /**
+             * @var function check if it the diff element is an association
+             *               and if its class and foreign key match the current entity
+             */
+            $isThisEntity = function ($check) {
+                return is_array($check) && $check['class'] === $this->cache['class'] && $check['fk'] === $this->instanceCache['id'];
+            };
+            foreach ($currentVersion->getDiff() as $fieldName => $fieldChange) {
+                if ($isThisEntity($fieldChange['new'])) { //associate, set registered to 1
+                    $assocAttrName = $this->getAttributeNameFor1toN($currentVersion, $fieldName);
+                    $this->instanceCache['currentAttributes'][$assocClass][$id][$assocAttrName] = 1;
+                }
+                if ($isThisEntity($fieldChange['old'])) { //dissociate, delete registration (registered is always 1)
+                    $assocAttrName = $this->getAttributeNameFor1toN($currentVersion, $fieldName);
+                    unset($this->instanceCache['currentAttributes'][$assocClass][$id][$assocAttrName]);
+                }
+            }
+        }
+
+        if (empty($this->instanceCache['currentAttributes'][$assocClass][$id])) {
+            return; // currently no attribute associated
+        }
+
+        $label = $this->getLabelForAssociation($currentVersion->getSource());
+        $oldLabel = $this->getCachedAssociationValue($currentVersion->getSource(), false);
+        if ($label !== $oldLabel) {
+            // a real change
+        } elseif (strlen($label) === 255) {
+            // limitation: if the label is trucated, the change is maybe hidden
+            // therefore currently show anyway
+        } else {
+            return; // change not visible to this entity
+        }
+
+        // update the label for all registered attributes
+        foreach ($this->instanceCache['currentAttributes'][$assocClass][$id] as $attrName => $registered) {
+            if ($registered <= 0) {
+                continue; // currently not associated => next $attrName
+            }
+            $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            $diffElement[$attrName][self::KEY_MODIFY_NEW][$id] = $label;
+            $diffElement[$attrName][self::KEY_MODIFY_OLD][$id] = $oldLabel;
+        }
+    }
+
+    /**
+     * Update the $diffElement with the change of $currentVersion of an assiciation change.
+     *
+     * @param AuditLog $currentVersion AuditLog with associate / dissociate (source is this class)
+     * @param array    $diffElement    where the result is written
+     */
+    protected function handleAssociateDissociate(AuditLog $currentVersion, array &$diffElement)
+    {
+        if ('associate' === $currentVersion->getAction()) {
+            $id = $currentVersion->getTarget()->getFk();
+            $assocClass = $currentVersion->getTarget()->getClass();
+            $columnName = $this->getAttributeNameForNtoN($currentVersion);
+
+            if (empty($this->instanceCache['currentAttributes'][$assocClass][$id][$columnName])) {
+                // currently not yet registered => set as change (associate)
+                $label = $this->getLabelForAssociation($currentVersion->getTarget());
+                $diffElement[$columnName][self::KEY_ADD][$id] = $label;
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 1;
+                $this->setCachedAssociationValue($currentVersion->getSource(), $label);
+            } else {
+                // already registered (because of associate before dissociate) => only update registered count
+                ++$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
+            }
+        } elseif ('dissociate' === $currentVersion->getAction()) {
+            $id = $currentVersion->getTarget()->getFk();
+            $assocClass = $currentVersion->getTarget()->getClass();
+            $columnName = $this->getAttributeNameForNtoN($currentVersion);
+
+            if (isset($this->instanceCache['currentAttributes'][$assocClass][$id][$columnName])) {
+                $registered = --$this->instanceCache['currentAttributes'][$assocClass][$id][$columnName];
+            } else { // auditLog was likely enabled after entity creation
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 0;
+                $registered = 0;
+            }
+            if (0 === $registered) {
+                // no more registered => set as change (dissociate)
+                $oldLabel = $this->getLabelForAssociation($currentVersion->getTarget());
+                $diffElement[$columnName][self::KEY_REMOVE][$id] = $oldLabel;
+
+                if (isset($diffElement[$columnName][self::KEY_ADD][$id]) &&
+                    $oldLabel === $diffElement[$columnName][self::KEY_ADD][$id] &&
+                    empty($this->instanceCache['insertCalled'])
+                ) { // likely associate + dissociate the same, when 1st association is missing
+                    // write this once (as uncertainity), then go to a stable level
+                    $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 1;
+                }
+            } elseif ($registered < 0) {
+                $this->logicWrong('registered for "'.$columnName.'" may not be < 0. It is '.$registered);
+                $this->instanceCache['currentAttributes'][$assocClass][$id][$columnName] = 0;
+            }
+        } else {
+            $this->logicWrong('Action '.$currentVersion->getAction().' is not supported by this method.');
+        }
+    }
+
+    /**
+     * Note in the $diffElement the removal of the logged entity.
+     *
+     * @todo Select a good default behaviour, current one may be unhandy. Unstable functionality!
+     * Default behaviour:
+     *
+     * Writes in the $diffElement that the value is deleted.
+     * What is written instead of a parameter name can be configured by `$options['parameter_name']` (default is
+     * `static::REMOVE_PARAMETER_NAME`). The text used instad of a parameter value is read from
+     * $options['parameter_value']
+     *
+     * Removing other changes noted for the same time is disabled (enable by setting `$options['only_remove']` to true).
+     *
+     * Associations are not tracked any longer (to track on, set $options['track_attributes'] = true).
+     *
+     * Can be override for customization needs.
+     *
+     * @param AuditLog $currentVersion AuditLog with associate / dissociate (source is this class)
+     * @param array    $diffElement    where the result is written
+     * @param array    $options        empty normally, for simple adapting by callling from subclasses
+     */
+    protected function removeThisEntity(AuditLog $currentVersion, array &$diffElement, array $options = array())
+    {
+        if (isset($options['only_remove']) && false === $options['only_remove']) {
+            $diffElement = array();
+        }
+        $key = isset($options['parameter_name']) ? $options['parameter_name'] : static::REMOVE_PARAMETER_NAME;
+        $value = isset($options['parameter_value']) ? $options['parameter_value'] : static::REMOVE_TEXT;
+        $diffElement[$key] = $value;
+
+        if (!empty($options['track_attributes'])) {
+            $this->instanceCache['currentAttributes'] = array();
+        }
+    }
+
+    /**
      * Filter the result before returning.
      *
      * @param array $diffArray subsequent elements are diff for each version
@@ -285,7 +419,9 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function filterFinalResult(array $diffArray)
     {
-        if (empty($this->instanceCache['insertCalled'])) {
+        if ((empty($this->instanceCache['insertCalled']) && // insert not called &&
+            isset($this->instanceCache['insertCalled'])) // value is false => data was added
+        ) {
             // insert call missing, incomplete log => update placeholder
             $diffArray[self::UNKNOWN_VERSION_CHANGE] = array(
             'changes' => array('  ' => 'unknown document versions before'),
@@ -298,26 +434,18 @@ class DataDogAudit extends AbstractBaseAudit
         foreach ($diffArray as $versionKey => $versionValue) {
             foreach (array_keys($versionValue['changes']) as $columnName) {
                 $currentElement = $diffArray[$versionKey]['changes'][$columnName];
-                if (is_array($currentElement)
-                        && isset($currentElement[self::KEY_UNCHANGED])
-                        && !isset($currentElement[self::KEY_ADD])
-                        && !isset($currentElement[self::KEY_REMOVE])
-                ) { // removes columns, for which changes stays only in unchanged key
-                    unset($versionValue['changes'][$columnName]);
-                } elseif (is_array($currentElement)) { // remove temp results
-                    unset(
-                        $versionValue['changes'][$columnName][self::TEMP_KEY_READD],
-                        $versionValue['changes'][$columnName][self::TEMP_KEY_OLDVAL]
-                    );
+                if (is_array($currentElement)) {
+                    // call custom filter for values containing several elements (manyToMany associations)
                     $filteredProp = $this->filterMultiValueProperty($versionValue['changes'][$columnName], $columnName);
-                    if (array() === $filteredProp) {
+                    if (array() === $filteredProp) { // cleared
                         unset($versionValue['changes'][$columnName]);
-                    } else {
+                    } else { // still a value, may even change the type to scalar
                         $versionValue['changes'][$columnName] = $filteredProp;
                     }
                 }
             }
             if ($versionValue['changes']) {
+                // call custom filter for value of each property
                 $filtered = $this->filterVersionChange($versionValue['changes']);
             } else {
                 $filtered = null; // mark for remove
@@ -337,34 +465,58 @@ class DataDogAudit extends AbstractBaseAudit
      *
      * @param AuditLog $currentVersion
      *
-     * @return string name
+     * @return string|null name
      */
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
+        return null; // => use default name
+    }
+
+    protected function getAttributeNameForNtoN(AuditLog $currentVersion)
+    {
+        $name = $this->getColumnNameForAssociation($currentVersion);
+        if (is_string($name)) {
+            return $name;
+        }
+
         $joinTableName = $currentVersion->getTbl();
         if (isset($this->cache['assocTable'][$joinTableName])) {
             return $this->cache['assocTable'][$joinTableName];
         }
 
         foreach ($this->getEntitiesClassMetaData()->getAssociationMappings() as $assMapping) {
-            if (isset($assMapping['joinTable'])) {
+            if (!empty($assMapping['joinTable'])) {
                 $assJoinTable = $assMapping['joinTable']['name'];
                 $this->cache['assocTable'][$assJoinTable] = $assMapping['fieldName'];
                 if ($joinTableName === $assJoinTable) {
                     return $assMapping['fieldName'];
                 }
-            } elseif (is_null($currentVersion->getTarget())
-                && $currentVersion->getSource()->getClass() === $assMapping['targetEntity']
-            ) { // ManyToOne mapping
-                $this->cache['assocTable'][$joinTableName] = $assMapping['fieldName'];
-
-                return $assMapping['fieldName'];
             }
         }
 
-        throw new \LogicException(sprintf('no association for %s found.', $joinTableName));
+        $this->logicWrong(sprintf('no association for %s found.', $joinTableName));
+
+        return ' '.$currentVersion->getTbl(); // some fallback
     }
 
+    protected function getAttributeNameFor1toN(AuditLog $currentVersion, $otherAttrName)
+    {
+        $name = $this->getColumnNameForAssociation($currentVersion);
+        if (is_string($name)) {
+            return $name;
+        }
+        $attrClass = $currentVersion->getSource()->getClass();
+
+        return $this->cache['oneToManyAssoc'][$attrClass][$otherAttrName];
+    }
+
+    /**
+     * Get the label of an association. Can be overridden for customization needs.
+     *
+     * @param Association $assoc
+     *
+     * @return string
+     */
     protected function getLabelForAssociation(Association $assoc)
     {
         return StringHelper::indicateStrippedKeepSize($assoc->getLabel(), 255); // 255 is the labels column size
@@ -408,29 +560,18 @@ class DataDogAudit extends AbstractBaseAudit
         }
         $attrClass = $entMeta->getAssociationMapping($attribute)['targetEntity'];
         $entInAttr = $entMeta->getAssociationMapping($attribute)['mappedBy'];
-        $entClassJson = json_encode($entClass);
 
-        $qb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('al')
-            ->join('al.source', 's')
-            ->where('s.class = :attrClass')->setParameter('attrClass', $attrClass)
-            ->andWhere("al.action = 'insert'")
-            ->andWhere("al.diff LIKE :diffLikeClsS ESCAPE '°'")
-            ->setParameter('diffLikeClsS', '%"'.$entInAttr.'":%"class":'.$entClassJson.'%,"fk":"'.$entId.'",%') // string fk
-        ;
-        $i = 1;
-        foreach ($additionalConditions as $condition) {
-            $condValue = json_encode($condition['value']);
-            $qb->andWhere('al.diff LIKE :diffLike'.$i)->setParameter('diffLike'.$i, '%"'.$condition['attr'].'"%"new":'.$condValue.'%');
-            ++$i;
-        }
+        $qb = $this->auditQueries->create1toNAssociationQb($attrClass, $entInAttr, $entClass, $entId);
+        $this->auditQueries->extend1toNAssociationQb($qb, $additionalConditions);
+
         $candidates = $qb->getQuery()->getResult();
         /// checking real values
         $matchingIds = array();
         /** @var AuditLog $candidate */
         foreach ($candidates as $candidate) {
             $diff = $candidate->getDiff();
-            if ($diff[$entInAttr]['new']['fk'] != $entId) {
-                continue; // wrong id => next candidate
+            if ($diff[$entInAttr]['new']['class'] !== $entClass || $diff[$entInAttr]['new']['fk'] != $entId) {
+                continue; // wrong class/id => next candidate (id may have type string or int)
             }
             foreach ($additionalConditions as $condition) {
                 if ($condition['value'] !== $diff[$condition['attr']]['new']) {
@@ -439,6 +580,8 @@ class DataDogAudit extends AbstractBaseAudit
             }
             $matchingIds[] = $candidate->getSource()->getFk();
         }
+        // register attribute name for lookup in {@see getAttributeNameFor1toN()}
+        $this->cache['oneToManyAssoc'][$attrClass][$entInAttr] = $attribute;
 
         return array('class' => $attrClass, 'ids' => $matchingIds);
     }
@@ -450,13 +593,21 @@ class DataDogAudit extends AbstractBaseAudit
      * @param string       $attributeClass probably ->getInverseSideAttributeIds()['class']
      * @param int[]        $ids            probably ->getInverseSideAttributeIds()['ids']
      */
-    protected function extendQbWithInverseSideAttribute($qb, $attributeClass, $ids)
+    protected function extendQbWithInverseSideAttribute(QueryBuilder $qb, $attributeClass, $ids)
     {
-        $unique = count($qb->getParameters()).substr($attributeClass, (strrpos($attributeClass, '\\') ?: -1) + 1);
-        $qb->orWhere('s.fk IN (:idsAttr'.$unique.') AND s.class = :classAttr'.$unique)
-            ->setParameter('classAttr'.$unique, $attributeClass)
-            ->setParameter('idsAttr'.$unique, $ids)
-        ;
+        if ($ids) {
+            $this->auditQueries->extendAuditLogWithAttributeQb($qb, $attributeClass, $ids);
+        }
+    }
+
+    /**
+     * Reports a non-fatal logic exception, only shown in debug mode.
+     *
+     * @param string $message
+     */
+    protected function logicWrong($message)
+    {
+        trigger_error('LogicException: '.$message, E_USER_WARNING);
     }
 
     /**

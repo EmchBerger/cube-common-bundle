@@ -358,6 +358,8 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     private function isAnActiveValue($value)
     {
-        return '' !== $value && count($value);
+        return !('' === $value || is_null($value) || // empty simple value
+            ((is_array($value) || $value instanceof \Countable) && 0 === count($value)) // empty count
+        );
     }
 }

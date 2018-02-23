@@ -13,6 +13,7 @@ parameters:
         - '# Doctrine\\Common\\Collections\\ArrayCollection#'
         - '# Doctrine\\Common\\Persistence\\ObjectManager#'
         - '# Doctrine\\ORM\\EntityManager#'
+        - '# Doctrine\\ORM\\EntityRepository#'
         - '# Doctrine\\ORM\\Mapping\\ClassMetadata#'
         - '# Doctrine\\ORM\\QueryBuilder#'
         - '# Knp\\Component\\Pager\\Pagination\\PaginationInterface#'
