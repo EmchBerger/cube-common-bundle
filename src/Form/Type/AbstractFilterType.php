@@ -21,7 +21,10 @@ class AbstractFilterType extends AbstractType
     {
         foreach ($form as $child) {
             $cData = $child->getData();
-            if ('' !== $cData && count($cData)) { // count returns 0 on empty Array(Collection) and on null
+            if (!('' === $cData || is_null($cData) || // simple empty value
+                ((is_array($cData) || $cData instanceof \Countable) && 0 === count($cData)) // empty count
+            )) {
+                // data is not empty => special view
                 $cView = $view->children[$child->getName()];
                 $a = $cView->vars['attr'];
                 $c = isset($a['class']) ? $a['class'].' ' : '';
