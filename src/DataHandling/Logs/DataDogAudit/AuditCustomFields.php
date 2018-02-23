@@ -12,6 +12,21 @@ use DataDog\AuditBundle\Entity\AuditLog;
  */
 class AuditCustomFields extends DataDogAudit
 {
+    /**
+     * @var string
+     */
+    private $labelPrefix = '';
+
+    /**
+     * Set a string which is prefixed to the labels of CustomFields.
+     *
+     * @param string $prefix
+     */
+    public function setCustomFieldLabelPrefix($prefix)
+    {
+        $this->labelPrefix = (string) $prefix;
+    }
+
     protected function getColumnNameForAssociation(AuditLog $currentVersion)
     {
         $label = $this->getCustomFieldLabel($currentVersion);
@@ -43,7 +58,7 @@ class AuditCustomFields extends DataDogAudit
         }
         $cfId = $currentVersion->getTarget()->getFk();
         if (isset($this->instanceCache['customfield_labels'][$cfId])) {
-            return $this->instanceCache['customfield_labels'][$cfId];
+            return $this->labelPrefix.$this->instanceCache['customfield_labels'][$cfId];
         }
 
         $cfQb = $this->em->getRepository(AuditLog::class)->createQueryBuilder('c')
@@ -66,7 +81,7 @@ class AuditCustomFields extends DataDogAudit
         }
         $this->instanceCache['customfield_labels'][$cfId] = $fieldId;
 
-        return $fieldId;
+        return $this->labelPrefix.$fieldId;
     }
 
     /**
