@@ -33,6 +33,7 @@ if (typeof(cubetools) === 'undefined') {
             // looks not necessary set padding and margin to 0 also
         } else {
             colGroupRule.style.visibility = '';
+            colGroupRule.style.width = '';
             cellsRule.style.visibility = '';
             cellsRule.style.width = '';
         }
