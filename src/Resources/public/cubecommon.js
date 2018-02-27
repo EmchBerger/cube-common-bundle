@@ -248,6 +248,11 @@ if (typeof(cubetools) === 'undefined') {
 
     cs.updateColumnView = function (colId, hide) {
         var col = $('#'+colId);
+        if (0 === col.length) {
+            console.error('column with id #'+colId+' not found');
+
+            return;
+        }
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
