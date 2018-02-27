@@ -26,21 +26,21 @@ if (typeof(cubetools) === 'undefined') {
         if (hide) {
             // for some browsers, it is enough to set collapse on col
             colGroupRule.style.setProperty('visibility', 'collapse', 'important');
-            colGroupRule.style.setProperty('width', '0px', 'important');
+            colGroupRule.style.setProperty('max-width', '0px', 'important');
             // for the others, we set visibility and size 0 to the cells
             cellsRule.style.setProperty('visibility', 'hidden', 'important');
-            cellsRule.style.setProperty('width', '0px', 'important');
             cellsRule.style.setProperty('max-width', '0px', 'important');
             cellsRule.style.setProperty('line-height', '0px', 'important');
             cellsRule.style.setProperty('padding', '0px', 'important');
+            cellsRule.style.setProperty('overflow', 'hidden', 'important');
         } else {
             colGroupRule.style.visibility = '';
-            colGroupRule.style.width = '';
+            colGroupRule.style.setProperty('max-width', '');
             cellsRule.style.visibility = '';
-            cellsRule.style.width = '';
             cellsRule.style.setProperty('max-width', '');
             cellsRule.style.setProperty('line-height', '');
             cellsRule.style.padding = '';
+            cellsRule.style.overflow = '';
         }
     };
 
