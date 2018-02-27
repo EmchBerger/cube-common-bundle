@@ -32,7 +32,7 @@ if (typeof(cubetools) === 'undefined') {
             cellsRule.style.setProperty('width', '0px', 'important');
             cellsRule.style.setProperty('max-width', '0px', 'important');
             cellsRule.style.setProperty('line-height', '0px', 'important');
-            // looks not necessary set padding and margin to 0 also
+            cellsRule.style.setProperty('padding', '0px', 'important');
         } else {
             colGroupRule.style.visibility = '';
             colGroupRule.style.width = '';
@@ -40,6 +40,7 @@ if (typeof(cubetools) === 'undefined') {
             cellsRule.style.width = '';
             cellsRule.style.setProperty('max-width', '');
             cellsRule.style.setProperty('line-height', '');
+            cellsRule.style.padding = '';
         }
     };
 
