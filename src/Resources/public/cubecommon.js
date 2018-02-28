@@ -26,15 +26,21 @@ if (typeof(cubetools) === 'undefined') {
         if (hide) {
             // for some browsers, it is enough to set collapse on col
             colGroupRule.style.setProperty('visibility', 'collapse', 'important');
-            colGroupRule.style.setProperty('width', '0px', 'important');
+            colGroupRule.style.setProperty('max-width', '0px', 'important');
             // for the others, we set visibility and size 0 to the cells
             cellsRule.style.setProperty('visibility', 'hidden', 'important');
-            cellsRule.style.setProperty('width', '0px', 'important');
-            // looks not necessary set padding and margin to 0 also
+            cellsRule.style.setProperty('max-width', '0px', 'important');
+            cellsRule.style.setProperty('line-height', '0px', 'important');
+            cellsRule.style.setProperty('padding', '0px', 'important');
+            cellsRule.style.setProperty('overflow', 'hidden', 'important');
         } else {
             colGroupRule.style.visibility = '';
+            colGroupRule.style.setProperty('max-width', '');
             cellsRule.style.visibility = '';
-            cellsRule.style.width = '';
+            cellsRule.style.setProperty('max-width', '');
+            cellsRule.style.setProperty('line-height', '');
+            cellsRule.style.padding = '';
+            cellsRule.style.overflow = '';
         }
     };
 
@@ -243,6 +249,11 @@ if (typeof(cubetools) === 'undefined') {
 
     cs.updateColumnView = function (colId, hide) {
         var col = $('#'+colId);
+        if (0 === col.length) {
+            console.error('column with id #'+colId+' not found');
+
+            return;
+        }
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
@@ -356,6 +367,7 @@ if (typeof(cubetools) === 'undefined') {
         var id = $(this).closest('form').find('input[name=id]').val();
         var btn = cs.getButtonForId(id);
         btn.popover('hide');
+        btn.data('bs.popover').inState.click = false; // twbs/bootstrap#16732
 
         return false;
     };
