@@ -367,6 +367,7 @@ if (typeof(cubetools) === 'undefined') {
         var id = $(this).closest('form').find('input[name=id]').val();
         var btn = cs.getButtonForId(id);
         btn.popover('hide');
+        btn.data('bs.popover').inState.click = false; // twbs/bootstrap#16732
 
         return false;
     };
