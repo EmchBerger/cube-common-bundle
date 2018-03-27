@@ -15,7 +15,7 @@ class CollectionHandler
     /**
      * @var string beginning of item line
      */
-    protected $listLinePrefix = self::LINE_PREFIX_DEFAULT;
+    protected $listLinePrefix = self::LIST_LINE_PREFIX_DEFAULT;
 
     /**
      * @var string value of key for each row with information about columns stored (if not set, not taken into account while iteration)
