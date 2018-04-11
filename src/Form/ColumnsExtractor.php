@@ -45,7 +45,9 @@ class ColumnsExtractor
         $columns = array();
 
         foreach ($form->all() as $formElement) {
+            $elementOptions = $formElement->getConfig()->getOptions();
             if (get_class($formElement->getConfig()->getType()->getInnerType()) != HiddenType::class &&
+                !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn']) &&
                 $this->validateColumn($formElement)
             ) {
                 $columns[] = $this->getColumnLabel($formElement);
