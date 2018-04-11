@@ -28,6 +28,21 @@ class CollectionHandler
     protected $keyWithElementValue;
 
     /**
+     * @var object for processing raw elements (with html tags)
+     */
+    protected $rawElementProcessor;
+
+    /**
+     * @var string method name in raw element processor object which take raw value as input
+     */
+    protected $rawElementProcessorMethodName;
+
+    /**
+     * @var string name of flag, which tells, if element have to be processed
+     */
+    protected $rawElementFlag;
+
+    /**
      * Method for setting custom beginning of item line.
      *
      * @param string $listLinePrefix beginning of item line
@@ -70,28 +85,90 @@ class CollectionHandler
     }
 
     /**
+     * Method setting processor for raw elements.
+     *
+     * @param object $rawElementProcessor for processing raw elements (with html tags)
+     *
+     * @return $this
+     */
+    public function setRawElementProcessor($rawElementProcessor)
+    {
+        $this->rawElementProcessor = $rawElementProcessor;
+
+        return $this;
+    }
+
+    /**
+     * Method setting name of method in processor for raw elements.
+     *
+     * @param object $rawElementProcessorMethodName method name in raw element processor object which take raw value as input
+     *
+     * @return $this
+     */
+    public function setRawElementProcessorMethodName($rawElementProcessorMethodName)
+    {
+        $this->rawElementProcessorMethodName = $rawElementProcessorMethodName;
+
+        return $this;
+    }
+
+    /**
+     * Method setting name of raw elements flag.
+     *
+     * @param string $rawElementFlag name of flag, which tells, if element have to be processed
+     *
+     * @return $this
+     */
+    public function setRawElementFlag($rawElementFlag)
+    {
+        $this->rawElementFlag = $rawElementFlag;
+
+        return $this;
+    }
+
+    /**
+     * Method for processing column value (optionally uses raw element processor).
+     *
+     * @param string  $columnValue value of column
+     * @param boolean $rawElement  flag telling, if element would be handled by rawElementProcessor (false by default)
+     *
+     * @return string|object
+     */
+    public function processValue($columnValue, $rawElement = false)
+    {
+        if ($rawElement) {
+            $columnOutputValue = $this->rawElementProcessor->{$this->rawElementProcessorMethodName}((string) $columnValue);
+        } else {
+            $columnOutputValue = (string) $columnValue;
+        }
+
+        return $columnOutputValue;
+    }
+
+    /**
      * Method for extracting data from collections.
      *
      * @param mixed  $collection iterable object to be processed
      * @param string $method     method for getting string from each element
+     * @param bool   $rawElement flag telling, if element would be handled by rawElementProcessor (false by default)
      *
      * @return string string with collection/field data
      */
-    public function handleCollection($collection, $method = '__toString')
+    public function handleCollection($collection, $method = '__toString', $rawElement = false)
     {
         $outputArray = array();
 
         foreach ($collection as $element) {
             if (!is_object($element)) {
-                $outputArray[] = sprintf('%s%s', $this->listLinePrefix, strval($element));
+                $outputArray[] = sprintf('%s%s', $this->listLinePrefix, $this->processValue($element, $rawElement));
             } elseif (is_array($method)) {
                 $oneElementArray = array();
                 foreach ($method as $oneMethod) {
                     $oneElementArray[] = $element->{$oneMethod}();
                 }
-                $outputArray[] = $this->listLinePrefix.implode(' ', $oneElementArray);
+                $outputArray[] = $this->listLinePrefix.$this->processValue(implode(' ', $oneElementArray), $rawElement);
             } else {
-                $outputArray[] = $this->listLinePrefix.$element->{$method}();
+                $outputArray[] = $this->listLinePrefix.$this->processValue($element->{$method}(), $rawElement);
             }
         }
 
@@ -102,17 +179,18 @@ class CollectionHandler
      * Method analyzing column value and extracting it's value.
      *
      * @param mixed $columnValue iterable element or convertible to string
+     * @param bool  $rawElement  flag telling, if element would be handled by rawElementProcessor (false by default)
      *
      * @return string value of column to be displayed
      */
-    public function getColumnValue($columnValue)
+    public function getColumnValue($columnValue, $rawElement = false)
     {
         $columnOutputValue = '';
 
         if (is_iterable($columnValue)) {
-            $columnOutputValue = $this->handleCollection($columnValue);
+            $columnOutputValue = $this->handleCollection($columnValue, '__toString', $rawElement);
         } else {
-            $columnOutputValue = (string) $columnValue;
+            $columnOutputValue = $this->processValue($columnValue, $rawElement);
         }
 
         return $columnOutputValue;
@@ -135,10 +213,14 @@ class CollectionHandler
             $outputRow = array();
 
             if (is_array($element)) {
-                if (isset($this->keyWithElements) && isset($this->keyWithElements)) {
+                if (isset($this->keyWithElements)) {
                     foreach ($element[$this->keyWithElements] as $columnElement) {
                         if (isset($this->keyWithElementValue)) {
-                            $outputRow[] = $this->getColumnValue($columnElement[$this->keyWithElementValue]);
+                            if (isset($columnElement[$this->rawElementFlag])) {
+                                $outputRow[] = $this->getColumnValue($columnElement[$this->keyWithElementValue], $columnElement[$this->rawElementFlag]);
+                            } else {
+                                $outputRow[] = $this->getColumnValue($columnElement[$this->keyWithElementValue]);
+                            }
                         } else {
                             $outputRow[] = $this->getColumnValue($columnElement);
                         }
