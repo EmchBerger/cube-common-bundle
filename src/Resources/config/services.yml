@@ -44,3 +44,5 @@ services:
             - '@Doctrine\Common\Persistence\ObjectManager'
     CubeTools\CubeCommonBundle\DataHandling\CollectionHandler:
         class: CubeTools\CubeCommonBundle\DataHandling\CollectionHandler
+    CubeTools\CubeCommonBundle\Form\ColumnsExtractor:
+        class: CubeTools\CubeCommonBundle\Form\ColumnsExtractor
