@@ -8,18 +8,23 @@ if (typeof(cubetools) === 'undefined') {
 
     var cs = cubetools.colsSelector;
 
-    var updateCols = function(table, hidableSettings)
+    cs.updateCols = function(table, hidableSettings)
     {
+        if (typeof(hidableSettings) === 'undefined') {
+            var btnId = table.find('.colsSelector').first().attr('id');
+            hidableSettings = cs.getHidableSettings(btnId);
+        }
+
         var cols = table.find('td, th, col');
         cols.each(function () {
             var colId = $(this).attr('id');
             if (hidableSettings[colId]) {
-                updateOneCol(colId, hidableSettings[colId].hidden);
+                cs.updateOneCol(colId, hidableSettings[colId].hidden);
             }
         });
     };
 
-    var updateOneCol = function(colId, hide)
+    cs.updateOneCol = function(colId, hide)
     {
         if (hide) {
             $("." + colId).hide();
@@ -227,7 +232,7 @@ if (typeof(cubetools) === 'undefined') {
                 colNo += cellColspan;
             });
             tableSettings[id] = settings;
-            updateCols(tbl, settings);
+            cs.updateCols(tbl, settings);
         });
     };
 
@@ -241,7 +246,7 @@ if (typeof(cubetools) === 'undefined') {
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
-        updateOneCol(colId, hide);
+        cs.updateOneCol(colId, hide);
         settings[colId].hidden = hide;
         cs.saveHidableSettings(id, settings);
     };
