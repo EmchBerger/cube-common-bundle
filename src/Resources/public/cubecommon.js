@@ -10,37 +10,21 @@ if (typeof(cubetools) === 'undefined') {
 
     var updateCols = function(table, hidableSettings)
     {
-        var cols = table.find('tr').eq(0).find('td, th');
+        var cols = table.find('td, th, col');
         cols.each(function () {
             var colId = $(this).attr('id');
             if (hidableSettings[colId]) {
-                updateOneCol(hidableSettings[colId], hidableSettings[colId].hidden);
+                updateOneCol(colId, hidableSettings[colId].hidden);
             }
         });
     };
 
-    var updateOneCol = function(colSettings, hide)
+    var updateOneCol = function(colId, hide)
     {
-        var cellsRule = columnStyle.cssRules.item(colSettings.ruleNo);
-        var colGroupRule = columnStyle.cssRules.item(colSettings.ruleNo + 1);
         if (hide) {
-            // for some browsers, it is enough to set collapse on col
-            colGroupRule.style.setProperty('visibility', 'collapse', 'important');
-            colGroupRule.style.setProperty('max-width', '0px', 'important');
-            // for the others, we set visibility and size 0 to the cells
-            cellsRule.style.setProperty('visibility', 'hidden', 'important');
-            cellsRule.style.setProperty('max-width', '0px', 'important');
-            cellsRule.style.setProperty('line-height', '0px', 'important');
-            cellsRule.style.setProperty('padding', '0px', 'important');
-            cellsRule.style.setProperty('overflow', 'hidden', 'important');
+            $("." + colId).hide();
         } else {
-            colGroupRule.style.visibility = '';
-            colGroupRule.style.setProperty('max-width', '');
-            cellsRule.style.visibility = '';
-            cellsRule.style.setProperty('max-width', '');
-            cellsRule.style.setProperty('line-height', '');
-            cellsRule.style.padding = '';
-            cellsRule.style.overflow = '';
+            $("." + colId).show();
         }
     };
 
@@ -257,7 +241,7 @@ if (typeof(cubetools) === 'undefined') {
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
-        updateOneCol(settings[colId], hide);
+        updateOneCol(colId, hide);
         settings[colId].hidden = hide;
         cs.saveHidableSettings(id, settings);
     };
