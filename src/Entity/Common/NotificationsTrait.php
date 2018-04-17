@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonBundle\Entity\Common;
 
 /**
  * To be used in entities for notification system.
+ * Connection to entity (ManyToOne) using NotificationsIntervalsTrait have to be made in class using this entity.
  */
 trait NotificationsTrait
 {
