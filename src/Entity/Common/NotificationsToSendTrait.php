@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonBundle\Entity\Common;
 
 /**
  * To be used in entities for notifications to be send.
+ * Connection to entity (ManyToOne) using NotificationsTrait have to be made in entity using this trait.
  */
 trait NotificationsToSendTrait
 {
@@ -15,13 +16,6 @@ trait NotificationsToSendTrait
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
-
-    /**
-     * @var int id of notification, for which this information is created
-     *
-     * @ORM\Column(name="notificationId", type="integer")
-     */
-    private $notificationId;
 
     /**
      * @var string content of message to be send to user
@@ -50,27 +44,6 @@ trait NotificationsToSendTrait
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     *
-     * @param int $notificationId
-     *
-     * @return $this
-     */
-    public function setNotificationId($notificationId)
-    {
-        $this->notificationId = $notificationId;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getNotificationId()
-    {
-        return $this->notificationId;
     }
 
     /**
