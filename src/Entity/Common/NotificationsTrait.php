@@ -32,13 +32,6 @@ trait NotificationsTrait
     private $entityId;
 
     /**
-     * @var int id of user (not using ManyToOne annotation so this field is universal)
-     *
-     * @ORM\Column(name="userId", type="integer")
-     */
-    private $userId;
-
-    /**
      * @var array null means, that every change causes notification
      *
      * @ORM\Column(name="triggerChangedColumns", type="simple_array", nullable=true)
@@ -93,27 +86,6 @@ trait NotificationsTrait
     public function getEntityId()
     {
         return $this->entityId;
-    }
-
-    /**
-     *
-     * @param int $userId
-     *
-     * @return $this
-     */
-    public function setUserId($userId)
-    {
-        $this->userId = $userId;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getUserId()
-    {
-        return $this->userId;
     }
 
     /**
