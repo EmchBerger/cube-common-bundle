@@ -26,7 +26,7 @@ trait NotificationsRepositoryTrait
      *
      * @return array notifications valid for given entity
      */
-    public function getNotificationsForEntity($entity)
+    public function getNotificationsForEntity($entity = null)
     {
         $this->setWatchedEntities();
         $notificationsOutput = array();
@@ -37,7 +37,7 @@ trait NotificationsRepositoryTrait
                 ->where('n.entityClass = :entityClass')
                 ->andWhere('n.entityId = :entityId OR n.entityId IS NULL')
                 ->setParameter('entityClass', $entityClassName)
-                ->setParameter('entityId', $entity->getId())
+                ->setParameter('entityId', (is_null($entity) ? -1 : $entity->getId()));
             ;
             $notificationsOutput = $qb->getQuery()->getResult();
         }
