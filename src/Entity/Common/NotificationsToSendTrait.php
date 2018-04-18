@@ -18,6 +18,13 @@ trait NotificationsToSendTrait
     private $id;
 
     /**
+     * @var int id of entity, for which notification is made (important when all data from one entityType is watched)
+     *
+     * @ORM\Column(name="entityId", type="integer", nullable=false)
+     */
+    protected $entityId;
+
+    /**
      * @var string content of message to be send to user
      *
      * @ORM\Column(name="message", type="string")
@@ -44,6 +51,27 @@ trait NotificationsToSendTrait
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     *
+     * @param int $entityId
+     *
+     * @return $this
+     */
+    public function setEntityId($entityId)
+    {
+        $this->entityId = $entityId;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getEntityId()
+    {
+        return $this->entityId;
     }
 
     /**
