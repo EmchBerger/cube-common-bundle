@@ -27,7 +27,7 @@ trait NotificationsToSendTrait
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="dateOfExecution", type="date", nullable=false)
+     * @ORM\Column(name="dateOfExecution", type="datetime", nullable=false)
      */
     private $dateOfExecution;
 
