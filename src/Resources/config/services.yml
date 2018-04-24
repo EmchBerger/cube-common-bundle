@@ -49,3 +49,15 @@ services:
     CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
         class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
         autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator:
+        class: CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator
+        autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator:
+        class: CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator
+        autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\MailSubscription:
+        class: CubeTools\CubeCommonBundle\Subscriptions\MailSubscription
+        autowire: true
+        calls:
+            - [setMessageContentGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator']]
+            - [setMessageParticipantsGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator']]
