@@ -17,6 +17,7 @@ trait NotificationsToSendRepositoryTrait
         $qb = $this->createQueryBuilder('ns')
             ->where('ns.dateOfExecution < CURRENT_TIMESTAMP()')
             ->andWhere('ns.isExecuted = :isExecuted')
+            ->orderBy('ns.id', 'asc')
             ->setParameter('isExecuted', false)
         ;
 
