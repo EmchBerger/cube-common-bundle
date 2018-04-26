@@ -132,32 +132,35 @@ class ContentGenerator
     /**
      * Method setting translated subject.
      *
-     * @param string $translatorKey key with translation for subject (if not present, then this text would be used as subject)
-     * @param string $domain        domain of translation
+     * @param string $translatorKey       key with translation for subject (if not present, then this text would be used as subject)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation (optional)
      */
-    public function setSubjectTranslationKey($translatorKey, $domain = null)
+    public function setSubjectTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->subjectText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->subjectText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
      * Method setting translated introduction of email.
-     * @param string $translatorKey key with translation for introduction (if not present, then this text would be used as introduction)
-     * @param string $domain        domain of translation
+     * @param string $translatorKey       key with translation for introduction (if not present, then this text would be used as introduction)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation
      */
-    public function setIntroductionTranslationKey($translatorKey, $domain = null)
+    public function setIntroductionTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->introductionText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->introductionText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
      * Method setting translated footer of email.
-     * @param string $translatorKey key with translation for footer (if not present, then this text would be used as footer)
-     * @param string $domain        domain of translation
+     * @param string $translatorKey       key with translation for footer (if not present, then this text would be used as footer)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation
      */
-    public function setFooterTranslationKey($translatorKey, $domain = null)
+    public function setFooterTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->footerText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->footerText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
