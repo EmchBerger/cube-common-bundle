@@ -112,8 +112,10 @@ class ContentGenerator
 
     /**
      * Method setting body of message.
+     *
+     * @param string $contentType content type of message body ('text/html' by default)
      */
-    public function setBody()
+    public function setBody($contentType = 'text/html')
     {
         $this->messageObject->setBody(
             $this->templatingEngine->render(
@@ -122,7 +124,8 @@ class ContentGenerator
                     'introduction' => $this->introductionText,
                     'footer' => $this->footerText,
                 )
-            )
+            ),
+            $contentType
         );
     }
 
