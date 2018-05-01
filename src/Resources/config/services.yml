@@ -46,3 +46,18 @@ services:
         class: CubeTools\CubeCommonBundle\DataHandling\CollectionHandler
     CubeTools\CubeCommonBundle\Form\ColumnsExtractor:
         class: CubeTools\CubeCommonBundle\Form\ColumnsExtractor
+    CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
+        class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
+        autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator:
+        class: CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator
+        autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator:
+        class: CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator
+        autowire: true
+    CubeTools\CubeCommonBundle\Subscriptions\MailSubscription:
+        class: CubeTools\CubeCommonBundle\Subscriptions\MailSubscription
+        autowire: true
+        calls:
+            - [setMessageContentGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator']]
+            - [setMessageParticipantsGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator']]
