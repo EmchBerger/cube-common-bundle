@@ -51,13 +51,16 @@ class MailSubscription
     public function setCondition($condition)
     {
         $this->condition = $condition;
+
         return $this;
     }
 
     /**
      * Method adding report (can be more than one). Those reports are only generated, when condition is fulfilled.
-     * @param \CubeTools\CubeCommonBundle\Subscriptions\Reports\AbstractReport $report object handling report
-     * @param boolean $overwrite if true, previous reports are overwritten with given (by default false)
+     *
+     * @param \CubeTools\CubeCommonBundle\Subscriptions\Reports\AbstractReport $report    object handling report
+     * @param boolean                                                          $overwrite if true, previous reports are overwritten with given (by default false)
+     *
      * @return CubeTools\CubeCommonBundle\Subscriptions\MailSubscription object, on which this method was executed
      */
     public function addReport($report, $overwrite = false)
@@ -84,8 +87,20 @@ class MailSubscription
     }
 
     /**
+     * Method returning actually set message content generator.
+     *
+     * @return \CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator
+     */
+    public function getMessageContentGenerator()
+    {
+        return $this->messageContentGenerator;
+    }
+
+    /**
      * Setter for object injecting message recipients to existing message object.
+     *
      * @param \CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator $messageParticipantsGenerator object for inserting message recipients
+     *
      * @return CubeTools\CubeCommonBundle\Subscriptions\MailSubscription object, on which this method was executed
      */
     public function setMessageParticipantsGenerator($messageParticipantsGenerator)
@@ -93,6 +108,14 @@ class MailSubscription
         $this->messageParticipantsGenerator = $messageParticipantsGenerator;
 
         return $this;
+    }
+
+    /**
+     * @return \CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator
+     */
+    public function getMessageParticipantsGenerator()
+    {
+        return $this->messageParticipantsGenerator;
     }
 
     /**
@@ -153,31 +176,47 @@ class MailSubscription
             $reportsArray = array();
 
             foreach ($this->reports as $report) {
-                $reportsArray = array_merge($reportsArray,
+                $reportsArray = array_merge(
+                    $reportsArray,
                     $report->getReportArray(
                         $this->condition->getOutputData()
                     )
                 );
             }
 
-            $this->messageContentGenerator->setMessageObject(
+            $this->createAndSendMessage($reportsArray, true);
+        }
+    }
+
+    /**
+     * Setting message object and sending it.
+     *
+     * @param array $reportsArray    data to be shown in email message
+     * @param bool  $withAttachments true if attachments are enabled (by default false)
+     */
+    public function createAndSendMessage($reportsArray = array(), $withAttachments = false)
+    {
+        $this->messageContentGenerator->setMessageObject(
                     $this->getMessageObject()
             );
-            $this->messageContentGenerator->setReports($reportsArray);
-            $this->messageContentGenerator->setSubject();
-            $this->messageContentGenerator->setBody();
+        $this->messageContentGenerator->setReports($reportsArray);
+        $this->messageContentGenerator->setSubject();
+        $this->messageContentGenerator->setBody();
+        if ($withAttachments) {
             $this->messageContentGenerator->setAttachments();
+        }
 
-            $this->messageParticipantsGenerator->setMessageObject(
-                    $this->getMessageObject()
-            );
-            $this->messageParticipantsGenerator->setParticipants($this);
-            $messages = $this->messageParticipantsGenerator->createMessagesForRecipients();
+        $this->messageParticipantsGenerator->setMessageObject(
+                $this->getMessageObject()
+        );
+        $this->messageParticipantsGenerator->setParticipants($this);
+        $messages = $this->messageParticipantsGenerator->createMessagesForRecipients();
 
-            foreach ($messages as $message) {
-                $this->swiftMailer->send($message);
-            }
+        foreach ($messages as $message) {
+            $this->swiftMailer->send($message);
+        }
 
+        if ($withAttachments) {
             $this->messageContentGenerator->deleteAttachments();
         }
     }

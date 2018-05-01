@@ -54,6 +54,20 @@ class ContentGenerator
     }
 
     /**
+     * Method for setting custom twig template for email messages.
+     *
+     * @param string $bodyTemplate path to twig template, from which email message would be generated
+     *
+     * @return $this
+     */
+    public function setBodyTemplate($bodyTemplate)
+    {
+        $this->bodyTemplate = $bodyTemplate;
+
+        return $this;
+    }
+
+    /**
      * Method setting reports.
      * @param array $reports
      */
@@ -78,10 +92,10 @@ class ContentGenerator
     {
         foreach ($this->reports as $report) {
             $this->messageObject->attach(
-                    \Swift_Attachment::fromPath(
-                            $report[AbstractReport::KEY_REPORT_PATH], 
-                            $report[AbstractReport::KEY_REPORT_FILE_CONTENT_TYPE]
-                    )
+                \Swift_Attachment::fromPath(
+                    $report[AbstractReport::KEY_REPORT_PATH],
+                    $report[AbstractReport::KEY_REPORT_FILE_CONTENT_TYPE]
+                )
             );
         }
     }
@@ -98,47 +112,55 @@ class ContentGenerator
 
     /**
      * Method setting body of message.
+     *
+     * @param string $contentType content type of message body ('text/html' by default)
      */
-    public function setBody()
+    public function setBody($contentType = 'text/html')
     {
         $this->messageObject->setBody(
-                $this->templatingEngine->render($this->bodyTemplate, 
-                        array('reports' => $this->reports,
-                            'introduction' => $this->introductionText,
-                            'footer' => $this->footerText
-                        )
+            $this->templatingEngine->render(
+                $this->bodyTemplate,
+                array('reports' => $this->reports,
+                    'introduction' => $this->introductionText,
+                    'footer' => $this->footerText,
                 )
+            ),
+            $contentType
         );
     }
 
     /**
      * Method setting translated subject.
-     * @param string $translatorKey key with translation for subject (if not present, then this text would be used as subject)
-     * @param string $domain domain of translation
+     *
+     * @param string $translatorKey       key with translation for subject (if not present, then this text would be used as subject)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation (optional)
      */
-    public function setSubjectTranslationKey($translatorKey, $domain = null)
+    public function setSubjectTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->subjectText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->subjectText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
      * Method setting translated introduction of email.
-     * @param string $translatorKey key with translation for introduction (if not present, then this text would be used as introduction)
-     * @param string $domain domain of translation
+     * @param string $translatorKey       key with translation for introduction (if not present, then this text would be used as introduction)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation
      */
-    public function setIntroductionTranslationKey($translatorKey, $domain = null)
+    public function setIntroductionTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->introductionText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->introductionText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
      * Method setting translated footer of email.
-     * @param string $translatorKey key with translation for footer (if not present, then this text would be used as footer)
-     * @param string $domain domain of translation
+     * @param string $translatorKey       key with translation for footer (if not present, then this text would be used as footer)
+     * @param string $translateParameters translator parameters (optional)
+     * @param string $domain              domain of translation
      */
-    public function setFooterTranslationKey($translatorKey, $domain = null)
+    public function setFooterTranslationKey($translatorKey, $translateParameters = array(), $domain = null)
     {
-        $this->footerText = $this->translator->trans($translatorKey, array(), $domain);
+        $this->footerText = $this->translator->trans($translatorKey, $translateParameters, $domain);
     }
 
     /**
