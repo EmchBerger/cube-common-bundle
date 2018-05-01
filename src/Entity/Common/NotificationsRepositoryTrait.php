@@ -13,7 +13,7 @@ trait NotificationsRepositoryTrait
     protected $watchedEntities = array();
 
     /**
-     * Method returns watched entities (from container parameter).
+     * Method gets watched entities (for example from container parameter) and set them in internal variable.
      *
      * @return array string[] subsequent elements are full class names of entities, which are watched
      */
