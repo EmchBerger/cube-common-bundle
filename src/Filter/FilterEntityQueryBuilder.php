@@ -112,11 +112,11 @@ class FilterEntityQueryBuilder
      *
      * @param string $expression
      * @param mixed  $valueFromDb
-     * @param mixed  $valueExpected
+     * @param mixed  $valueExpected by default null, due to the fact, that for some expression is not needed (for example checking if null)
      *
      * @return bool true if condition is passed
      */
-    public function evaluateExpression($expression, $valueFromDb, $valueExpected)
+    public function evaluateExpression($expression, $valueFromDb, $valueExpected = null)
     {
         $expressionResult = true;
         switch ($expression) {
@@ -151,15 +151,15 @@ class FilterEntityQueryBuilder
                 $expressionResult = (intval($valueFromDb) <> 0);
                 break;
             case self::EXPRESSION_MORE_OR_EQUAL:
-                // mostly DateTime object comparisons:
-                $expressionResult = ($valueExpected >= $valueFromDb);
+                $expressionResult = ($valueFromDb >= $valueExpected);
                 break;
             case self::EXPRESSION_ZERO_OR_NULL:
                 $expressionResult = (intval($valueFromDb) === 0 || is_null($valueFromDb));
                 break;
             case self::EXPRESSION_DATE_RANGE_TO:
+                $valueExpected = clone $valueExpected;
                 $parameterValue = $valueExpected->modify('+1 day');
-                $expressionResult = ($parameterValue < $valueFromDb);
+                $expressionResult = ($valueFromDb < $parameterValue);
                 break;
         }
 
@@ -206,6 +206,21 @@ class FilterEntityQueryBuilder
                 break;
             }
         }
+    }
+
+    /**
+     * Method reseting object for test purposes.
+     *
+     * @return $this
+     */
+    public function resetObject()
+    {
+        $this->conditions = array();
+        $this->aliases = array();
+        $this->parameters = array();
+        $this->conditionsFulfilled = true;
+
+        return $this;
     }
 
     /**
