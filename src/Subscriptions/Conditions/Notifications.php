@@ -28,12 +28,7 @@ class Notifications extends AbstractCondition
      */
     const KEY_FILTER_AFTER = 'filterAfter';
 
-    /**
-     * Method checks, if entity meets conditions for notification to be made.
-     *
-     * @return bool true if condition is fulfilled
-     */
-    public function isConditionFulfilled()
+    protected function setChangedColumns()
     {
         $changedColumns = array_keys($this->filterData[self::KEY_CHANGESET]);
         $triggerChangedColumns = array(); // columns, which are changed and trigger notification
@@ -44,6 +39,16 @@ class Notifications extends AbstractCondition
             }
         }
         $this->outputData[self::KEY_TRIGGER_CHANGED_COLUMNS] = $triggerChangedColumns;
+    }
+
+    /**
+     * Method checks, if entity meets conditions for notification to be made.
+     *
+     * @return bool true if condition is fulfilled
+     */
+    public function isConditionFulfilled()
+    {
+        $this->setChangedColumns();
 
         return !empty($this->outputData[self::KEY_TRIGGER_CHANGED_COLUMNS]);
     }
