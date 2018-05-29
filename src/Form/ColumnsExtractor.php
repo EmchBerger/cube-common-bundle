@@ -5,7 +5,7 @@ namespace CubeTools\CubeCommonBundle\Form;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 /**
- * Method for getting column names from filter form (possibility to add custom validation in extended class)
+ * Class for getting column properties from filter form (possibility to add custom validation in extended class)
  */
 class ColumnsExtractor
 {
