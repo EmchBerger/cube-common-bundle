@@ -39,6 +39,32 @@ class ColumnsExtractor
     }
 
     /**
+     * Method can be overwritten in order to make custom name for columns.
+     *
+     * @param \Symfony\Component\Form\Form $formElement
+     *
+     * @return string name for column
+     */
+    public function getColumnName($formElement)
+    {
+        return $formElement->getConfig()->getName();
+    }
+
+    /**
+     * Method can be overwritten in order to make custom style for columns.
+     *
+     * @param \Symfony\Component\Form\Form $formElement
+     *
+     * @return string style for column
+     */
+    public function getColumnStyle($formElement)
+    {
+        $formElementOptions = $formElement->getConfig()->getOptions();
+
+        return ($formElementOptions['attr']['style'] ?? '');
+    }
+
+    /**
      * Method for getting array with name of columns
      *
      * @param \Symfony\Component\Form\AbstractType $form form object, from which elements would be taken
