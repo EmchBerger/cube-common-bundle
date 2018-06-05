@@ -34,7 +34,7 @@ class Notifications extends AbstractCondition
         $triggerChangedColumns = array(); // columns, which are changed and trigger notification
 
         foreach ($changedColumns as $columnName) {
-            if (empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS]) || in_array($columnName, $this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS])) {
+            if ((empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS]) || empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS][0])) || in_array($columnName, $this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS])) {
                 $triggerChangedColumns[] = $columnName;
             }
         }
