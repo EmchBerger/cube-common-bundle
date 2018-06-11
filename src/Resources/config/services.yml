@@ -21,6 +21,8 @@ services:
         calls:
             - [setPaginator, ['@?knp_paginator']]
     CubeTools\CubeCommonBundle\Filter\FilterService: '@cube_common.filtering'
+    CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder:
+        class: CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder
     cube_common.session_keep_on_success:
         class: CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener
         tags:
@@ -49,6 +51,8 @@ services:
     CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
         class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
         autowire: true
+        calls:
+            - [setFilterEntityQueryBuilder, ['@CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder']]
     CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator:
         class: CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator
         autowire: true
