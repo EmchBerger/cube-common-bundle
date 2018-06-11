@@ -124,9 +124,14 @@ class FilterEntityQueryBuilder
                 $expressionResult = ($valueFromDb == $valueExpected);
                 break;
             case self::EXPRESSION_LIKE:
-                // TODO: check if % is in at the beginning and at the end
-                $parameterValue = substr($valueExpected, 1, -1); // remove % at the beginning and at the end
-                $expressionResult = (stripos($valueFromDb, $parameterValue) !== false);
+                if ($valueExpected[0] === '%') {
+                    $valueExpected = substr($valueExpected, 1);
+                }
+                if ($valueExpected[strlen($valueExpected) - 1] === '%') {
+                    $valueExpected = substr($valueExpected, 0, -1);
+                }
+
+                $expressionResult = (stripos($valueFromDb, $valueExpected) !== false);
                 break;
             case self::EXPRESSION_IN:
                 $expressionResult = false;

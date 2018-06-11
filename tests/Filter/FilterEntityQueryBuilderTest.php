@@ -105,6 +105,21 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), 'is not test')
         );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), 'title.')
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), 'This')
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), '%This')
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), 'title%')
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_LIKE, $this->analysedEntity->getTitle(), '%is%')
+        );
 
         $this->assertTrue(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_EQUAL, $this->analysedEntity->getTitle(), 'This is test title.')
