@@ -74,6 +74,9 @@ class StringHelper
         // replace all / with _
         $fileName = str_replace('/', '_', $fileName);
 
+        // replace all \ with _
+        $fileName = str_replace('\\', '_', $fileName);
+
         // Gather file informations and store its extension
         $fileInfos = pathinfo($fileName);
         $fileExt   = array_key_exists('extension', $fileInfos) ? '.'.strtolower($fileInfos['extension']) : '';
