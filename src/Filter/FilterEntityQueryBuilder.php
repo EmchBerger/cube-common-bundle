@@ -4,7 +4,7 @@ namespace CubeTools\CubeCommonBundle\Filter;
 
 /**
  * Object to be set for FilterQueryCondition->setQuerybuilder to listen for sql query and make conditions only on provided entity.
- * The aim is to avoid sql queries while checking one entity against filters.
+ * The aim is to avoid sql queries while checking one entity against filters. Object emulates mostly used methods of QueryBuilder.
  */
 class FilterEntityQueryBuilder
 {
@@ -89,6 +89,11 @@ class FilterEntityQueryBuilder
     protected $aliases = array();
 
     /**
+     * @var array root aliases
+     */
+    protected $rootAliases;
+
+    /**
      * Method setting entity, for each filtering would be made.
      *
      * @param object $entity
@@ -105,6 +110,24 @@ class FilterEntityQueryBuilder
     public function setParameter($parameterName, $parameterValue, $type = null)
     {
         $this->parameters[$parameterName] = $parameterValue;
+    }
+
+    /**
+     * Setter for emulating method getRootAliases.
+     *
+     * @param array|string $rootAliases array of aliases or one alias as string
+     *
+     * @return $this
+     */
+    public function setRootAliases($rootAliases)
+    {
+        if (is_array($rootAliases)) {
+            $this->rootAliases = $rootAliases;
+        } else {
+            $this->rootAliases = array($rootAliases);
+        }
+
+        return $this;
     }
 
     /**
@@ -278,5 +301,15 @@ class FilterEntityQueryBuilder
     {
         $joinArray = explode('.', $join);
         $this->aliases[$alias] = $joinArray[1];
+    }
+
+    public function getRootAliases()
+    {
+        return $this->rootAliases;
+    }
+
+    public function getRootEntities()
+    {
+        return array(\Doctrine\Common\Util\ClassUtils::getClass($this->analysedEntity));
     }
 }
