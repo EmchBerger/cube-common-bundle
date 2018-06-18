@@ -94,6 +94,11 @@ class FilterEntityQueryBuilder
     protected $rootAliases;
 
     /**
+     * @var \Doctrine\ORM\Query\Expr expression builder, lazy initialization
+    */
+    protected $expressionBuilder;
+
+    /**
      * Method setting entity, for each filtering would be made.
      *
      * @param object $entity
@@ -301,6 +306,18 @@ class FilterEntityQueryBuilder
     {
         $joinArray = explode('.', $join);
         $this->aliases[$alias] = $joinArray[1];
+
+        return $this;
+    }
+
+    /**
+     * Normally merge with array_keys($this->joinRootAliases), here only output of getRootAliases.
+     *
+     * @return array
+     */
+    public function getAllAliases()
+    {
+        return $this->getRootAliases();
     }
 
     public function getRootAliases()
@@ -311,5 +328,14 @@ class FilterEntityQueryBuilder
     public function getRootEntities()
     {
         return array(\Doctrine\Common\Util\ClassUtils::getClass($this->analysedEntity));
+    }
+
+    public function expr()
+    {
+        if (!isset($this->expressionBuilder)) {
+            $this->expressionBuilder = new \Doctrine\ORM\Query\Expr();
+        }
+
+        return $this->expressionBuilder;
     }
 }
