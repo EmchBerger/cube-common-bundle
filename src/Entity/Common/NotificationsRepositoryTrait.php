@@ -22,11 +22,12 @@ trait NotificationsRepositoryTrait
     /**
      * Method checks, if there are set notifications for this entity.
      *
-     * @param object $entity examined entity
+     * @param object $entity                examined entity
+     * @param bool   $searchForNullEntityId if true, search for records with null entityId enabled (default: true)
      *
      * @return array notifications valid for given entity
      */
-    public function getNotificationsForEntity($entity = null)
+    public function getNotificationsForEntity($entity = null, $searchForNullEntityId = true)
     {
         $this->setWatchedEntities();
         $notificationsOutput = array();
@@ -34,10 +35,17 @@ trait NotificationsRepositoryTrait
 
         if (in_array($entityClassName, $this->watchedEntities)) { // entity is watched - now check id of entity
             $qb = $this->createQueryBuilder('n')
-                ->where('n.entityClass = :entityClass')
-                ->andWhere('n.entityId = :entityId OR n.entityId IS NULL')
-                ->setParameter('entityClass', $entityClassName)
-                ->setParameter('entityId', (is_null($entity) ? -1 : $entity->getId()));
+                ->andWhere('n.entityClass = :entityClass')
+            ;
+
+            if ($searchForNullEntityId) {
+                $qb->andWhere('n.entityId = :entityId OR n.entityId IS NULL');
+            } else {
+                $qb->andWhere('n.entityId = :entityId');
+            }
+
+            $qb->setParameter('entityClass', $entityClassName)
+                ->setParameter('entityId', (is_null($entity) ? -1 : $entity->getId()))
             ;
             $notificationsOutput = $qb->getQuery()->getResult();
         }
