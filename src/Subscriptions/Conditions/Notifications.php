@@ -145,14 +145,25 @@ class Notifications extends AbstractCondition
      *
      * @param \CubeTools\CubeCommonBundle\Filter\FilterQueryCondition $filter set Filter
      * @param \CubeTools\CubeCommonBundle\Form\Type\AbstractFilterType $filterform valid filterform
+     * @param bool $useEntityQuery if false, filtering for entity is directly made on database (by default true)
+     *
+     * @return \Doctrine\ORM\QueryBuilder|\CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder type of return depends on value for $useEntityQuery flag
      */
-    protected function buildQuery($filter, $filterform)
+    protected function buildQuery($filter, $filterform, $useEntityQuery = true)
     {
-        $this->filterEntityQueryBuilder->resetObject();
-        $this->filterEntityQueryBuilder->setAnalysedEntity($this->filterData[self::KEY_ENTITY]);
+        if ($useEntityQuery) {
+            $this->filterEntityQueryBuilder->resetObject();
+            $this->filterEntityQueryBuilder->setAnalysedEntity($this->filterData[self::KEY_ENTITY]);
+            $this->filterBuilderObject->{$this->filterBuilderMethodName}($filter, $filterform, $this->filterEntityQueryBuilder);
+            $outputQb = $this->filterEntityQueryBuilder;
+        } else {
+            $qb = $this->filterBuilderObject->{$this->filterBuilderMethodName}($filter, $filterform);
+            $qb->andWhere($qb->getRootAliases()[0].'.id = :entityId');
+            $qb->setParameter('entityId', $this->filterData[self::KEY_ENTITY]->getId());
+            $outputQb = $qb;
+        }
 
-        // inserts query builder - every method have a possibility to add it as 3 parameter (default - null)
-        $this->filterBuilderObject->{$this->filterBuilderMethodName}($filter, $filterform, $this->filterEntityQueryBuilder);
+        return $outputQb;
     }
 
     /**
@@ -173,9 +184,8 @@ class Notifications extends AbstractCondition
         if ($this->isFilterAfterSet()) {
             $filterform = $this->filterData[self::KEY_FILTERFORM];
             $filter = new FilterQueryCondition($filterform->getData());
-            $filter->setQuerybuilder($this->filterEntityQueryBuilder);
-            $this->buildQuery($filter, $filterform);
-            $filterAfterFulfilled = boolval(count($this->filterEntityQueryBuilder->getQuery()->getResult()));
+            $qb = $this->buildQuery($filter, $filterform);
+            $filterAfterFulfilled = boolval(count($qb->getQuery()->getResult()));
         } else {
             $filterAfterFulfilled = true;
         }
