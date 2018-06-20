@@ -37,9 +37,14 @@ class Notifications extends AbstractCondition
     const KEY_ENTITY = 'entity';
 
     /**
-     * Key with filterform.
+     * Key with filterform before change
      */
-    const KEY_FILTERFORM = 'form';
+    const KEY_FILTERFORM_BEFORE = 'form_before';
+
+    /**
+     * Key with filterform after change
+     */
+    const KEY_FILTERFORM_AFTER = 'form_after';
 
     /**
      * @var \CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder
@@ -125,7 +130,7 @@ class Notifications extends AbstractCondition
      *
      * @return bool true if filter before change set
      */
-    protected function isFilterBeforeSet()
+    public function isFilterBeforeSet()
     {
         return (isset($this->filterData[self::KEY_FILTER_BEFORE]) && !is_null($this->filterData[self::KEY_FILTER_BEFORE]));
     }
@@ -135,7 +140,7 @@ class Notifications extends AbstractCondition
      *
      * @return bool true if filter after change set
      */
-    protected function isFilterAfterSet()
+    public function isFilterAfterSet()
     {
         return (isset($this->filterData[self::KEY_FILTER_AFTER]) && !is_null($this->filterData[self::KEY_FILTER_AFTER]));
     }
@@ -174,15 +179,16 @@ class Notifications extends AbstractCondition
     protected function executeFilters()
     {
         if ($this->isFilterBeforeSet()) {
-            // needs to reproduce state of entity before update
-            // currently always true:
-            $filterBeforeFulfilled = true;
+            $filterform = $this->filterData[self::KEY_FILTERFORM_BEFORE];
+            $filter = new FilterQueryCondition($filterform->getData());
+            $qb = $this->buildQuery($filter, $filterform, false);
+            $filterBeforeFulfilled = boolval(count($qb->getQuery()->getResult()));
         } else {
             $filterBeforeFulfilled = true;
         }
 
         if ($this->isFilterAfterSet()) {
-            $filterform = $this->filterData[self::KEY_FILTERFORM];
+            $filterform = $this->filterData[self::KEY_FILTERFORM_AFTER];
             $filter = new FilterQueryCondition($filterform->getData());
             $qb = $this->buildQuery($filter, $filterform);
             $filterAfterFulfilled = boolval(count($qb->getQuery()->getResult()));
