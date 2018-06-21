@@ -322,7 +322,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function __call($method, $args)
     {
-        if ($this->qb instanceof FilterEntityQueryBuilder) {
+        if ($this->qb instanceof FilterEntityQueryBuilder && $method !== 'leftJoin') {
             return $this;
         } else {
             $callback = array($this->qb, $method);
