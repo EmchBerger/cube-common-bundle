@@ -20,6 +20,16 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     private $qb;
 
     /**
+     * @var string|int phrase for showing all records where no value is set
+     */
+    protected $isAny = FilterConstants::WHERE_IS_SET;
+
+    /**
+     * @var string|int phrase for showing all records where any value is set
+     */
+    protected $isNone = FilterConstants::WHERE_IS_NOT_SET;
+
+    /**
      * @param array $filter array of form elements (returned by $mainForm->getData())
      */
     public function __construct(array $filter = array())
@@ -132,6 +142,57 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     }
 
     /**
+     *
+     * @param string|int $isAny phrase for showing all records where no value is set
+     *
+     * @return $this
+     */
+    public function setIsAny($isAny)
+    {
+        $this->isAny = $isAny;
+
+        return $this;
+    }
+
+    /**
+     *
+     * @param string|int $isNone phrase for showing all records where any value is set
+     *
+     * @return $this
+     */
+    public function setIsNone($isNone)
+    {
+        $this->isNone = $isNone;
+
+        return $this;
+    }
+
+    /**
+     * Method checking, if for given filter show all records where any value is set, or records, where no value is set.
+     * Method sets proper filtering.
+     *
+     * @param string $name      filter element name
+     * @param string $dbColName name of database column
+     *
+     * @return bool true if filter is set, false if not set (further filtering is made)
+     */
+    public function isAnyOrNoneValue($name, $dbColName)
+    {
+        $value = str_replace('%', '', $this->filter[$name]);
+        $outputValue = false;
+
+        if ($this->isAny == $value) {
+            $this->qb->andWhere($dbColName.' IS NOT NULL');
+            $outputValue = true;
+        } elseif ($this->isNone == $value) {
+            $this->qb->andWhere($dbColName.' IS NULL');
+            $outputValue = true;
+        }
+
+        return $outputValue;
+    }
+
+    /**
      * Checks if any filter is active.
      *
      * @return bool true when any filter active
@@ -180,9 +241,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
 
     public function andWhereLike($table, $filterName, $dbColumn = null)
     {
-        if ($this->isActive($filterName)) {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if ($this->isActive($filterName) && !$this->isAnyOrNoneValue($filterName, $dbColName)) {
             $value = $this->filter[$filterName];
-            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
             $this->qb->andWhere($dbColName.' LIKE :'.$param)->setParameter($param, $value);
         }
@@ -204,7 +266,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
 
     public function andWhereIn($table, $filterName, $dbColumn = null)
     {
-        if ($this->isActive($filterName)) {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if ($this->isActive($filterName) && !$this->isAnyOrNoneValue($filterName, $dbColName)) {
             $value = $this->filter[$filterName];
             if ($value instanceof ArrayCollection) {
                 $value = $value->toArray(); // see #DDC-2319
@@ -215,7 +279,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
                     $value = $jsonDecoded;
                 }
             }
-            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
             $param = $filterName;
             $this->qb->andWhere($dbColName.' IN (:'.$param.')')->setParameter($param, $value);
         }
