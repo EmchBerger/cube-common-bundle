@@ -2,6 +2,7 @@
 
 namespace CubeTools\CubeCommonBundle\Filter;
 
+use CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -34,6 +35,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function __construct(array $filter = array())
     {
+        if (isset($filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS])) {
+            $filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS] = json_decode($filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS], true);
+        }
+
         $this->filter = $filter;
     }
 
@@ -178,13 +183,25 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function isAnyOrNoneValue($name, $dbColName)
     {
-        $value = str_replace('%', '', $this->filter[$name]);
+        if (isset($this->filter[$name]) && is_scalar($this->filter[$name])) {
+            $value = str_replace('%', '', $this->filter[$name]);
+        } else if (isset($this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS])) {
+            if (in_array($name, $this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS][AnyNoneFilterListener::KEY_ANY_COLUMNS])) {
+                $value = $this->isAny;
+            } else if (in_array($name, $this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS][AnyNoneFilterListener::KEY_NONE_COLUMNS])) {
+                $value = $this->isNone;
+            } else {
+                $value = false;
+            }
+        } else {
+            $value = false;
+        }
         $outputValue = false;
 
-        if ($this->isAny == $value) {
+        if ($this->isAny === $value) {
             $this->qb->andWhere($dbColName.' IS NOT NULL');
             $outputValue = true;
-        } elseif ($this->isNone == $value) {
+        } elseif ($this->isNone === $value) {
             $this->qb->andWhere($dbColName.' IS NULL');
             $outputValue = true;
         }
@@ -266,9 +283,8 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
 
     public function andWhereIn($table, $filterName, $dbColumn = null)
     {
-        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
-
-        if ($this->isActive($filterName) && !$this->isAnyOrNoneValue($filterName, $dbColName)) {
+        if ($this->isActive($filterName)) {
+            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $value = $this->filter[$filterName];
             if ($value instanceof ArrayCollection) {
                 $value = $value->toArray(); // see #DDC-2319
