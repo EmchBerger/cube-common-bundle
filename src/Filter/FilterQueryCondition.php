@@ -283,8 +283,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
 
     public function andWhereIn($table, $filterName, $dbColumn = null)
     {
-        if ($this->isActive($filterName)) {
-            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
             $value = $this->filter[$filterName];
             if ($value instanceof ArrayCollection) {
                 $value = $value->toArray(); // see #DDC-2319
