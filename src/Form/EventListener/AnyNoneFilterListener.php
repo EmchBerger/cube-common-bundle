@@ -2,6 +2,8 @@
 
 namespace CubeTools\CubeCommonBundle\Form\EventListener;
 
+use CubeTools\CubeCommonBundle\Form\ColumnsExtractor;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormEvent;
 
 class AnyNoneFilterListener
@@ -37,6 +39,29 @@ class AnyNoneFilterListener
      * Subkey for filter defined in KEY_ANY_NONE_SELECTED_COLUMNS specifying columns, where all records where no value is set are taken into account (used also as select value)
      */
     const KEY_NONE_COLUMNS = 'none';
+
+    /**
+     * @var \CubeTools\CubeCommonBundle\Form\ColumnsExtractor
+     */
+    protected $columnsExtractor;
+
+    public function __construct(ColumnsExtractor $columnsExtractor)
+    {
+        $this->columnsExtractor = $columnsExtractor;
+    }
+
+    /**
+     * Method to be called as PRE_SET_DATA listener for form.
+     *
+     * @param \Symfony\Component\Form\FormEvent $event
+     */
+    public function addAnyNoneColumns(FormEvent $event)
+    {
+        $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
+            'data' => json_encode($this->columnsExtractor->getEntitiesColumnsByName($event->getForm())),
+        ));
+        $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class);
+    }
 
     /**
      * Method to be called as PRE_SUBMIT listener for form.
