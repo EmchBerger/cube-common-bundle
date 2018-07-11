@@ -20,8 +20,6 @@ class VersatileUserProvider extends UserProvider
         if ($user = $this->userManager->findUserByUsername($username)) {
             return $user;
         } elseif ($user = $this->userManager->findUserByEmail($username)) {
-            $username = $user->getUsername();
-
             return $user;
         }
     }
