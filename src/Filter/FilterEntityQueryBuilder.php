@@ -220,6 +220,8 @@ class FilterEntityQueryBuilder
                 if ($expression === self::EXPRESSION_DATE_RANGE_TO) {
                     preg_match(self::REGULAR_EXPRESSION_TILL_COMMA, $conditionArray[1], $matches);
                     $parameterValue = $matches[0];
+                } else if (in_array($expression, array(self::EXPRESSION_NOT_NULL, self::EXPRESSION_NULL, self::EXPRESSION_NOT_ZERO, self::EXPRESSION_ZERO_OR_NULL))) {
+                    $parameterValue = null;
                 } else {
                     // remove of possible bracket at the end of parameter:
                     $parameterValue = $this->parameters[str_replace(')', '', $conditionArray[1])];
