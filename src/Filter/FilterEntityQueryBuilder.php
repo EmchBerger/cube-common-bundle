@@ -211,6 +211,10 @@ class FilterEntityQueryBuilder
                 $conditionArray = explode($expression, $condition);
                 // dividing something like 's.status':
                 $columnNameArray = explode('.', $conditionArray[0]);
+                if (stripos($columnNameArray[1], ' ') !== false) {
+                    // remove not needed part of column name for some conditions (like 0 and null)
+                    $columnNameArray[1] = explode(' ', $columnNameArray[1])[0];
+                }
                 if (isset($this->aliases[$columnNameArray[0]])) {
                     // if alias was registered by leftJoin method, then other getter is used
                     $getterName = 'get'.ucfirst($this->aliases[$columnNameArray[0]]);

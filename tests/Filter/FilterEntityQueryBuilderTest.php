@@ -248,6 +248,24 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(
             boolval(count($this->object->getQuery()->getResult()))
         );
+
+        $this->object->resetObject();
+        $this->object->andWhere('s.position = 0 OR s.position IS NULL');
+        $this->assertFalse(
+            boolval(count($this->object->getQuery()->getResult()))
+        );
+
+        $this->object->resetObject();
+        $this->object->andWhere('s.position IS NULL');
+        $this->assertFalse(
+            boolval(count($this->object->getQuery()->getResult()))
+        );
+
+        $this->object->resetObject();
+        $this->object->andWhere('s.position IS NOT NULL');
+        $this->assertTrue(
+            boolval(count($this->object->getQuery()->getResult()))
+        );
     }
 
     /**
