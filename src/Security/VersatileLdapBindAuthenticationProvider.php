@@ -10,6 +10,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * VersatileLdapBindAuthenticationProvider uses the User instance returned by
  * the UserProvider for authentication (rather than the username string). This
  * allows to use alternative ways of fetching the User instance.
+ * In order to use the queryString, the ldap service passed as a constructor
+ * argument must be bound anonymously.
  *
  * @author paschke
  */
