@@ -27,7 +27,7 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->object = new FilterEntityQueryBuilder();
 
         $this->analysedEntity = $this->getMockBuilder('MockNotExistingEntity')
-            ->setMethods(array('getTitle', 'getPosition', 'getZeroValue', 'getNullValue', 'getActualDate', 'getOneWeekBeforeDate', 'getContainsCollection', 'getNotContainsCollection'))
+            ->setMethods(array('getTitle', 'getPosition', 'getZeroValue', 'getNullValue', 'getActualDate', 'getOneWeekBeforeDate', 'getContainsCollection', 'getNotContainsCollection', 'getRelatedEntity', 'getNotRelatedEntity'))
             ->getMock();
         $this->analysedEntity->expects($this->any())
             ->method('getTitle')
@@ -81,6 +81,31 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->analysedEntity->expects($this->any())
             ->method('getNotContainsCollection')
             ->will($this->returnValue($mockNotContainsCollection))
+        ;
+
+        $relatedEntity = $this->getMockBuilder('relatedEntity')
+            ->setMethods(array('getId'))
+            ->getMock()
+        ;
+        $relatedEntity->expects($this->any())
+            ->method('getId')
+            ->will($this->returnValue(2))
+        ;
+        $this->analysedEntity->expects($this->any())
+            ->method('getRelatedEntity')
+            ->will($this->returnValue($relatedEntity))
+        ;
+        $notRelatedEntity = $this->getMockBuilder('notRelatedEntity')
+            ->setMethods(array('getId'))
+            ->getMock()
+        ;
+        $notRelatedEntity->expects($this->any())
+            ->method('getId')
+            ->will($this->returnValue(3))
+        ;
+        $this->analysedEntity->expects($this->any())
+            ->method('getNotRelatedEntity')
+            ->will($this->returnValue($notRelatedEntity))
         ;
 
         $this->object->setAnalysedEntity($this->analysedEntity);
@@ -206,6 +231,18 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertFalse(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getNotContainsCollection(), array(new \stdClass()))
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getRelatedEntity(), array($this->analysedEntity->getRelatedEntity()))
+        );
+        $this->assertFalse(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getRelatedEntity(), array($this->analysedEntity->getNotRelatedEntity()))
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getRelatedEntity(), array($this->analysedEntity->getNotRelatedEntity(), $this->analysedEntity->getRelatedEntity()))
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getRelatedEntity(), array($this->analysedEntity->getRelatedEntity()), $this->analysedEntity->getNotRelatedEntity())
         );
     }
 

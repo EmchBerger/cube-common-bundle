@@ -163,6 +163,7 @@ class FilterEntityQueryBuilder
                 break;
             case self::EXPRESSION_IN:
                 $expressionResult = false;
+
                 foreach ($valueExpected as $elementExpected) {
                     if (is_object($valueFromDb) && method_exists($valueFromDb, 'contains')) {
                         // ArrayCollection handling
@@ -170,6 +171,12 @@ class FilterEntityQueryBuilder
                             // condition fullfiled if at least one element is present
                             $expressionResult = true;
                             break;
+                        }
+                    } else if (is_object($valueFromDb) && method_exists($valueFromDb, 'getId')) {
+                        // Single object by ManyToOne or OneToOne relationships
+                        if ($valueFromDb->getId() === $elementExpected->getId()) {
+                                $expressionResult = true;
+                                break;
                         }
                     }
                 }
