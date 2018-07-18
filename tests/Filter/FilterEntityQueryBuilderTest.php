@@ -244,6 +244,12 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getRelatedEntity(), array($this->analysedEntity->getRelatedEntity()), $this->analysedEntity->getNotRelatedEntity())
         );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getContainsCollection(), $this->analysedEntity->getRelatedEntity())
+        );
+        $this->assertFalse(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_IN, $this->analysedEntity->getNotContainsCollection(), $this->analysedEntity->getNotRelatedEntity())
+        );
     }
 
     /**
