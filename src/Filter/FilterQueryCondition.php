@@ -223,6 +223,26 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         return $this;
     }
 
+    public function andWhereIntegerRange($table, $filterName, $dbColumn = null)
+    {
+        if ($this->isActive($filterName)) {
+            $value = $this->filter[$filterName];
+            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+            $param = $filterName;
+            if (is_int($value)) {
+                $value = array('from' => $value, 'to' => $value);
+            }
+            if ($value['from']) {
+                $this->qb->andWhere($dbColName.' >= :'.$param.'From')->setParameter($param.'From', $value['from']);
+            }
+            if ($value['to']) {
+                $this->qb->andWhere($dbColName.' < :'.$param.'To')->setParameter($param.'To', $value['to']);
+            }
+        }
+
+        return $this;
+    }
+
     public function andWhereDaterange($table, $filterName, $dbColumn = null)
     {
         if ($this->isActive($filterName)) {
