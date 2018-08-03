@@ -236,7 +236,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
                 $this->qb->andWhere($dbColName.' >= :'.$param.'From')->setParameter($param.'From', $value['from']);
             }
             if ($value['to']) {
-                $this->qb->andWhere($dbColName.' < :'.$param.'To')->setParameter($param.'To', $value['to']);
+                $this->qb->andWhere($dbColName.' <= :'.$param.'To')->setParameter($param.'To', $value['to']);
             }
         }
 
