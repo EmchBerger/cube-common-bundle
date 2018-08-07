@@ -30,13 +30,14 @@ services:
         calls:
           - [ setUserSettingsStorage, ['@?CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage'] ]
 
-    cube_common.filtering:
+    CubeTools\CubeCommonBundle\Filter\FilterService:
         class: CubeTools\CubeCommonBundle\Filter\FilterService
         arguments:
             - "@request_stack"
         calls:
             - [setPaginator, ['@?knp_paginator']]
-    CubeTools\CubeCommonBundle\Filter\FilterService: '@cube_common.filtering'
+    cube_common.filtering: '@CubeTools\CubeCommonBundle\Filter\FilterService'
+
     cube_common.session_keep_on_success:
         class: CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener
         tags:
