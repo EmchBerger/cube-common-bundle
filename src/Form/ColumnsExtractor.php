@@ -65,11 +65,11 @@ class ColumnsExtractor
     }
 
     /**
-     * Method for getting array with name of columns
+     * Method for getting array with label of columns.
      *
      * @param \Symfony\Component\Form\AbstractType $form form object, from which elements would be taken
      *
-     * @return array string[]
+     * @return array string[] labels for columns
      */
     public function getColumns($form)
     {
@@ -82,6 +82,32 @@ class ColumnsExtractor
                 $this->validateColumn($formElement)
             ) {
                 $columns[] = $this->getColumnLabel($formElement);
+            }
+        }
+
+        return $columns;
+    }
+
+    /**
+     * Method for getting array with name of columns, for which entities can be selected.
+     *
+     * @param \Symfony\Component\Form\AbstractType $form form object, from which elements would be taken
+     *
+     * @return array string[] names for columns
+     */
+    public function getEntitiesColumnsByName($form)
+    {
+        $columns = array();
+
+        foreach ($form->all() as $formElement) {
+            $elementOptions = $formElement->getConfig()->getOptions();
+            if (in_array(
+                get_class($formElement->getConfig()->getType()->getInnerType()),
+                array('Symfony\Bridge\Doctrine\Form\Type\EntityType', 'Tetranz\Select2EntityBundle\Form\Type\Select2EntityType')
+                ) &&
+                !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn'])
+            ) {
+                $columns[] = $this->getColumnName($formElement);
             }
         }
 
