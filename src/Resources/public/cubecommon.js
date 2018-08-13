@@ -164,6 +164,7 @@ if (typeof(cubetools) === 'undefined') {
                 }
 
                 if (col.hasClass('noHideCol') || col.is('[style*=visibility]')) { // skip this
+                    var colId = null;
                 } else {
                     colId = matchFn(col);
                 }
@@ -193,8 +194,8 @@ if (typeof(cubetools) === 'undefined') {
                             colGroupSel = colSel.replace(' tr ', ' colgroup ');
                             if (SET_ID_LATER === colId) {
                                 if ($('#'+colClass).length > 0) { // not unique
-                                    var otherSame = $('#'+colId);
-                                    if (otherSame.hasClass(colId) && otherSame.closest('tr') === col.closest('tr')) {
+                                    var otherSame = $('#'+colClass);
+                                    if (otherSame.hasClass(colClass) && otherSame.closest('tr').is(col.closest('tr'))) {
                                          // same class in same tr, to hide as one group
 
                                         return; // go to next column
