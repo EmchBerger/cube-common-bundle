@@ -48,6 +48,9 @@ services:
         class: CubeTools\CubeCommonBundle\DataHandling\CollectionHandler
     CubeTools\CubeCommonBundle\Form\ColumnsExtractor:
         class: CubeTools\CubeCommonBundle\Form\ColumnsExtractor
+    CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener:
+        class: CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener
+        autowire: true
     CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
         class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
         autowire: true
