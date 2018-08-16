@@ -129,7 +129,7 @@ class StringHelper
      *
      * @return string
      */
-    public function stripQuotes($string)
+    public static function stripQuotes($string)
     {
         return strtr($string, array('"' => '', "'" => ''));
     }
