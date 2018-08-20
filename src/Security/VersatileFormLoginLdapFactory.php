@@ -24,7 +24,7 @@ class VersatileFormLoginLdapFactory extends FormLoginFactory
             ->replaceArgument(1, new Reference('security.user_checker.'.$id))
             ->replaceArgument(2, $id)
             ->replaceArgument(3, new Reference($config['service']))
-            ->replaceArgument(4, $config['dn_string'])
+            ->replaceArgument(5, $config['dn_string'])
         ;
 
         if (!empty($config['query_string'])) {
