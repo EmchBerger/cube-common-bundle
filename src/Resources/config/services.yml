@@ -70,4 +70,4 @@ services:
     CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider:
         class: CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider
         autowire: true
-        arguments: ['@CubeTools\CubeCommonBundle\Security\VersatileUserProvider', '', '', '@ldap', '']
+        arguments: ['@CubeTools\CubeCommonBundle\Security\VersatileUserProvider', '', '', '@ldap', '@logger', '']
