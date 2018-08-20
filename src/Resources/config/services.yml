@@ -64,3 +64,10 @@ services:
         calls:
             - [setMessageContentGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator']]
             - [setMessageParticipantsGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator']]
+    CubeTools\CubeCommonBundle\Security\VersatileUserProvider:
+        class: CubeTools\CubeCommonBundle\Security\VersatileUserProvider
+        autowire: true
+    CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider:
+        class: CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider
+        autowire: true
+        arguments: ['@CubeTools\CubeCommonBundle\Security\VersatileUserProvider', '', '', '@ldap', '@logger', '']
