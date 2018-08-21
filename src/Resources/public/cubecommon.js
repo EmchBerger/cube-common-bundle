@@ -10,6 +10,9 @@ if (typeof(cubetools) === 'undefined') {
 
     var updateCols = function(table, hidableSettings)
     {
+        if ('undefined' === typeof(hidableSettings)) {
+            return; // for bc compatibility, update is done automatically
+        }
         var cols = table.find('tr').eq(0).find('td, th');
         cols.each(function () {
             var colId = $(this).attr('id');
