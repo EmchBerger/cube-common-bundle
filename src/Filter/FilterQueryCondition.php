@@ -246,9 +246,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function andWhereEqual($table, $filterName, $dbColumn = null)
     {
-        if ($this->isActive($filterName)) {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
             $value = $this->filter[$filterName];
-            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
             $this->qb->andWhere($dbColName.' = :'.$param)->setParameter($param, $value);
         }
