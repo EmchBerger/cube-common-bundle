@@ -69,5 +69,5 @@ services:
         autowire: true
     CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider:
         class: CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider
-        autowire: true
-        arguments: ['@CubeTools\CubeCommonBundle\Security\VersatileUserProvider', '', '', '@ldap', '@logger', '']
+        abstract: true
+        arguments: ['', '', '', '', '', '%security.authentication.hide_user_not_found%']
