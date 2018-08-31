@@ -8,28 +8,42 @@ if (typeof(cubetools) === 'undefined') {
 
     var cs = cubetools.colsSelector;
 
-    cs.updateCols = function(table, hidableSettings)
+    var updateCols = function(table, hidableSettings)
     {
-        if (typeof(hidableSettings) === 'undefined') {
-            var btnId = table.find('.colsSelector').first().attr('id');
-            hidableSettings = cs.getHidableSettings(btnId);
+        if ('undefined' === typeof(hidableSettings)) {
+            return; // for bc compatibility, update is done automatically
         }
-
-        var cols = table.find('td, th, col');
+        var cols = table.find('tr').eq(0).find('td, th');
         cols.each(function () {
             var colId = $(this).attr('id');
             if (hidableSettings[colId]) {
-                cs.updateOneCol(colId, hidableSettings[colId].hidden);
+                updateOneCol(hidableSettings[colId], hidableSettings[colId].hidden);
             }
         });
     };
 
-    cs.updateOneCol = function(colId, hide)
+    var updateOneCol = function(colSettings, hide)
     {
+        var cellsRule = columnStyle.cssRules.item(colSettings.ruleNo);
+        var colGroupRule = columnStyle.cssRules.item(colSettings.ruleNo + 1);
         if (hide) {
-            $("." + colId).hide();
+            // for some browsers, it is enough to set collapse on col
+            colGroupRule.style.setProperty('visibility', 'collapse', 'important');
+            colGroupRule.style.setProperty('max-width', '0px', 'important');
+            // for the others, we set visibility and size 0 to the cells
+            cellsRule.style.setProperty('visibility', 'hidden', 'important');
+            cellsRule.style.setProperty('max-width', '0px', 'important');
+            cellsRule.style.setProperty('line-height', '0px', 'important');
+            cellsRule.style.setProperty('padding', '0px', 'important');
+            cellsRule.style.setProperty('overflow', 'hidden', 'important');
         } else {
-            $("." + colId).show();
+            colGroupRule.style.visibility = '';
+            colGroupRule.style.setProperty('max-width', '');
+            cellsRule.style.visibility = '';
+            cellsRule.style.setProperty('max-width', '');
+            cellsRule.style.setProperty('line-height', '');
+            cellsRule.style.padding = '';
+            cellsRule.style.overflow = '';
         }
     };
 
@@ -233,7 +247,7 @@ if (typeof(cubetools) === 'undefined') {
                 colNo += cellColspan;
             });
             tableSettings[id] = settings;
-            cs.updateCols(tbl, settings);
+            updateCols(tbl, settings);
         });
     };
 
@@ -247,7 +261,7 @@ if (typeof(cubetools) === 'undefined') {
         var table = col.closest('table');
         var id = table.find('.colsSelector').attr('id') || '';
         var settings = cs.getHidableSettings(id);
-        cs.updateOneCol(colId, hide);
+        updateOneCol(settings[colId], hide);
         settings[colId].hidden = hide;
         cs.saveHidableSettings(id, settings);
     };
