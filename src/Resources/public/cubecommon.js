@@ -18,7 +18,7 @@ if (typeof(cubetools) === 'undefined') {
         var cols = table.find('td, th, col');
         cols.each(function () {
             var colId = $(this).attr('id');
-            if (hidableSettings[colId]) {
+            if (colId && hidableSettings[colId]) {
                 cs.updateOneCol(colId, hidableSettings[colId].hidden);
             }
         });
