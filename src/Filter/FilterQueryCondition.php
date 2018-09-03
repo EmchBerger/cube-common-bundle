@@ -429,7 +429,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         } else {
             $callback = array($this->qb, $method);
             if (!is_callable($callback)) {
-                $msg = "Undefined method '$method (not in ".static::class;
+                $msg = "Undefined method '$method' (not in ".static::class;
                 if ($this->qb && is_object($this->qb)) {
                     $msg .= ' or '.get_class($this->qb).')';
                 } else {
