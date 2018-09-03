@@ -105,7 +105,7 @@ class FilterSessionHelper
         if ($form->isSubmitted() && $form->isValid()) {
             // use all() because getViewData() returns the forms viewdata but not the elements
             self::setFilterDataToSession($session, $pageName, $form->all(), $onSuccessKeepFn);
-            if ('GET' !== $request->getMethod() && !$request->isXmlHttpRequest()) {
+            if ($request->getMethod() !== 'GET') {
                 return array('redirect' => static::getRedirectUrl($request));
             }
             $filter = $form->getData();
