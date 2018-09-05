@@ -16,7 +16,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     private $filter = array();
 
     /**
-     * @var QueryBuilder
+     * @var \Doctrine\ORM\QueryBuilder
      */
     private $qb;
 
@@ -222,7 +222,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * Sets the query builder for creating filter queries later.
      *
-     * @param QueryBuilder $qb
+     * @param \Doctrine\ORM\QueryBuilder $qb
      *
      * @return $this
      */
@@ -246,9 +246,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function andWhereEqual($table, $filterName, $dbColumn = null)
     {
-        if ($this->isActive($filterName)) {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
             $value = $this->filter[$filterName];
-            $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
             $this->qb->andWhere($dbColName.' = :'.$param)->setParameter($param, $value);
         }
