@@ -74,7 +74,7 @@ class AnyNoneFilterListener
     {
         $formData = $event->getData();
 
-        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS])) {
+        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS]) && isset($formData[self::KEY_ANY_NONE_COLUMNS])) {
             $anyNoneColumns = json_decode(stripslashes($formData[self::KEY_ANY_NONE_COLUMNS]));
             $newAnyNoneColumns = array(self::KEY_ANY_NONE_NOT_DEFINED => array(), self::KEY_ANY_COLUMNS => array(), self::KEY_NONE_COLUMNS => array());
             foreach ($anyNoneColumns as $columnName) {

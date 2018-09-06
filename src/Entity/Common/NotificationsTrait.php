@@ -39,6 +39,20 @@ trait NotificationsTrait
     private $triggerChangedColumns;
 
     /**
+     * @var array null means, that filter before change is not active for notification
+     *
+     * @ORM\Column(name="filterBefore", type="array", nullable=true)
+     */
+    private $filterBefore;
+
+    /**
+     * @var array null means, that filter after change is not active for notification
+     *
+     * @ORM\Column(name="filterAfter", type="array", nullable=true)
+     */
+    private $filterAfter;
+
+    /**
      * @return int
      */
     public function getId()
@@ -106,5 +120,45 @@ trait NotificationsTrait
     public function getTriggerChangedColumns()
     {
         return $this->triggerChangedColumns;
+    }
+
+    /**
+     * @param array $filterBefore
+     *
+     * @return $this
+     */
+    public function setFilterBefore($filterBefore)
+    {
+        $this->filterBefore = $filterBefore;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFilterBefore()
+    {
+        return $this->filterBefore;
+    }
+
+    /**
+     * @param array $filterAfter
+     *
+     * @return $this
+     */
+    public function setFilterAfter($filterAfter)
+    {
+        $this->filterAfter = $filterAfter;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFilterAfter()
+    {
+        return $this->filterAfter;
     }
 }

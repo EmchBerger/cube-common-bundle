@@ -414,6 +414,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
 
     /**
      * Calls any method on QueryBuilder if it exists there.
+     * If filtering is made on one entity through FilterEntityQueryBuilder, further calls on Query Builder doesn't trigger any action and doesn't create errors.
      *
      * @param string  $method
      * @param mixed[] $args
@@ -424,23 +425,27 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public function __call($method, $args)
     {
-        $callback = array($this->qb, $method);
-        if (!is_callable($callback)) {
-            $msg = "Undefined method '$method (not in ".static::class;
-            if ($this->qb && is_object($this->qb)) {
-                $msg .= ' or '.get_class($this->qb).')';
-            } else {
-                $msg .= ' and Querybuilder is not set)';
-            }
-            throw new \BadMethodCallException($msg);
-        }
-        $ret = call_user_func_array($callback, $args);
-
-        if ($ret === $this->qb) {
+        if ($this->qb instanceof FilterEntityQueryBuilder && $method !== 'leftJoin') {
             return $this;
-        }
+        } else {
+            $callback = array($this->qb, $method);
+            if (!is_callable($callback)) {
+                $msg = "Undefined method '$method' (not in ".static::class;
+                if ($this->qb && is_object($this->qb)) {
+                    $msg .= ' or '.get_class($this->qb).')';
+                } else {
+                    $msg .= ' and Querybuilder is not set)';
+                }
+                throw new \BadMethodCallException($msg);
+            }
+            $ret = call_user_func_array($callback, $args);
 
-        return $ret;
+            if ($ret === $this->qb) {
+                return $this;
+            }
+
+            return $ret;
+        }
     }
 
     private function getDbColumn($table, $filterName, $dbColumn)
