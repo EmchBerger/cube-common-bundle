@@ -306,6 +306,36 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         return $this;
     }
 
+    public function andWhereInArray($table, $filterName, $dbColumn = null)
+    {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
+            $value = $this->filter[$filterName];
+            if ($value instanceof ArrayCollection) {
+                $value = $value->toArray();
+            }
+
+            $parameters = array();
+            foreach ($value as $elementKey => $elementValue) {
+                $parameterKey = $filterName.$elementKey;
+                $parameterValue = '%'.$elementValue.'%';
+                $parameters[$parameterKey] = $parameterValue;
+
+                $this->qb->setParameter($parameterKey, $parameterValue);
+            }
+
+            $likeQueryArray = array();
+            foreach ($parameters as $parameterName => $parameterValue) {
+                $likeQueryArray[] = sprintf("%s LIKE :%s", $dbColName, $parameterName);
+            }
+
+            $this->qb->andWhere(implode(' OR ', $likeQueryArray));
+        }
+
+        return $this;
+    }
+
     public function andWhereIntegerRange($table, $filterName, $dbColumn = null)
     {
         if ($this->isActive($filterName)) {
