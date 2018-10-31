@@ -306,6 +306,53 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         return $this;
     }
 
+    /**
+     * Method for searching inside doctrine array.
+     *
+     * @param string $table      name of database table
+     * @param string $filterName name of filter element
+     * @param string $dbColumn   name of database column, defaults to $filterName
+     * @param string $arrayType  type of doctrine type with array ('array', 'simple_array', 'json', 'json_array'); currently only 'array' is supported
+     *
+     * @return $this
+     * @throws \InvalidArgumentException thrown if improper $arrayType is provided
+     */
+    public function andWhereInArray($table, $filterName, $dbColumn = null, $arrayType = 'array')
+    {
+        $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
+
+        if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
+            $value = $this->filter[$filterName];
+            if ($value instanceof ArrayCollection) {
+                $value = $value->toArray();
+            }
+
+            $parameters = array();
+            foreach ($value as $elementKey => $elementValue) {
+                $parameterKey = $filterName.$elementKey;
+                switch ($arrayType) {
+                    case 'array':
+                        $parameterValue = '%"'.$elementValue.'"%';
+                        break;
+                    default:
+                        throw new \InvalidArgumentException('Currently only doctrine type "array" is supported (given: '.$arrayType.').');
+                }
+                $parameters[$parameterKey] = $parameterValue;
+
+                $this->qb->setParameter($parameterKey, $parameterValue);
+            }
+
+            $likeQueryArray = array();
+            foreach ($parameters as $parameterName => $parameterValue) {
+                $likeQueryArray[] = sprintf("%s LIKE :%s", $dbColName, $parameterName);
+            }
+
+            $this->qb->andWhere(implode(' OR ', $likeQueryArray));
+        }
+
+        return $this;
+    }
+
     public function andWhereIntegerRange($table, $filterName, $dbColumn = null)
     {
         if ($this->isActive($filterName)) {
