@@ -77,18 +77,20 @@ class AnyNoneFilterListener
         if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS]) && isset($formData[self::KEY_ANY_NONE_COLUMNS])) {
             $anyNoneColumns = json_decode(stripslashes($formData[self::KEY_ANY_NONE_COLUMNS]));
             $newAnyNoneColumns = array(self::KEY_ANY_NONE_NOT_DEFINED => array(), self::KEY_ANY_COLUMNS => array(), self::KEY_NONE_COLUMNS => array());
-            foreach ($anyNoneColumns as $columnName) {
-                if (isset($formData[$columnName])) {
-                    $isArray = is_array($formData[$columnName]);
-                    $columnValue = ($isArray ? current($formData[$columnName]) : $formData[$columnName]);
-                    if (in_array($columnValue, array(self::KEY_ANY_COLUMNS, self::KEY_NONE_COLUMNS))) {
-                        $newAnyNoneColumns[$columnValue][] = $columnName;
-                        $formData[$columnName] = ($isArray ? array() : '');
+            if (is_array($anyNoneColumns) || $anyNoneColumns instanceof Traversable ) {
+                foreach ($anyNoneColumns as $columnName) {
+                    if (isset($formData[$columnName])) {
+                        $isArray = is_array($formData[$columnName]);
+                        $columnValue = ($isArray ? current($formData[$columnName]) : $formData[$columnName]);
+                        if (in_array($columnValue, array(self::KEY_ANY_COLUMNS, self::KEY_NONE_COLUMNS))) {
+                            $newAnyNoneColumns[$columnValue][] = $columnName;
+                            $formData[$columnName] = ($isArray ? array() : '');
+                        } else {
+                            $newAnyNoneColumns[self::KEY_ANY_NONE_NOT_DEFINED][] = $columnName;
+                        }
                     } else {
                         $newAnyNoneColumns[self::KEY_ANY_NONE_NOT_DEFINED][] = $columnName;
                     }
-                } else {
-                    $newAnyNoneColumns[self::KEY_ANY_NONE_NOT_DEFINED][] = $columnName;
                 }
             }
             $formData[self::KEY_ANY_NONE_SELECTED_COLUMNS] = json_encode($newAnyNoneColumns);
