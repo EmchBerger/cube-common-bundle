@@ -4,7 +4,9 @@ namespace CubeTools\CubeCommonBundle\Form\EventListener;
 
 use CubeTools\CubeCommonBundle\Form\ColumnsExtractor;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 
 class AnyNoneFilterListener
 {
@@ -55,6 +57,17 @@ class AnyNoneFilterListener
     public function __construct(ColumnsExtractor $columnsExtractor)
     {
         $this->columnsExtractor = $columnsExtractor;
+    }
+
+    /**
+     * Adds data for AnyNoneFilter to the form (events, ...).
+     *
+     * @param \CubeTools\CubeCommonBundle\Form\EventListener\FormBuilderInterface $builder
+     */
+    public function addToBuilder(FormBuilderInterface $builder)
+    {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, array($this, 'addAnyNoneColumns'));
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, array($this, 'processAnyNoneColumns'));
     }
 
     /**
