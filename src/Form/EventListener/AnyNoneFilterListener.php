@@ -73,19 +73,24 @@ class AnyNoneFilterListener
     /**
      * Method to be called as PRE_SET_DATA listener for form.
      *
+     * Add fields to the form to submit data to frontend.
+     *
      * @param \Symfony\Component\Form\FormEvent $event
      */
     public function addAnyNoneColumns(FormEvent $event)
     {
         $this->entityElementsWithAnyNone = $this->columnsExtractor->getEntitiesColumnsByName($event->getForm());
+        // field transfers data to frontend (javascript) to append selecions
         $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
             'data' => json_encode($this->entityElementsWithAnyNone),
         ));
+        // field transfers current selections to frontend (javascript) and to ..\Filter\FilterQueryCondition
         $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class);
     }
 
     /**
      * Method to be called as PRE_SUBMIT listener for form.
+     *
      * Method analyses form input and process fields, where any or none record option can be set.
      * At the end, method modify form input (avoid inproper values when matching with entities).
      *
@@ -112,6 +117,7 @@ class AnyNoneFilterListener
                     $newAnyNoneColumns[self::KEY_ANY_NONE_NOT_DEFINED][] = $columnName;
                 }
             }
+            // saved for frontend and for applying filter
             $formData[self::KEY_ANY_NONE_SELECTED_COLUMNS] = json_encode($newAnyNoneColumns);
             $event->setData($formData);
         }
