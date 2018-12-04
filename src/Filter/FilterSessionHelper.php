@@ -96,7 +96,7 @@ class FilterSessionHelper
     public static function getFilterData(Request $request, FormInterface $form, $pageName, $onSuccessKeepFn)
     {
         $session = $request->getSession();
-        if ('1' == $request->query->get('filter_reset')) {
+        if ('1' == $request->get('filter_reset')) { // POST or GET parameter
             self::setFilterDataToSession($session, $pageName, array(), null);
 
             return array('redirect' => static::getRedirectUrl($request, array('filter_reset')));
