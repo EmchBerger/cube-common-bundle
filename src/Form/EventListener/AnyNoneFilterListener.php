@@ -45,6 +45,13 @@ class AnyNoneFilterListener
      */
     protected $columnsExtractor;
 
+    /**
+     * Elements (listing entities) containing AnyNoneSelection
+     *
+     * @var string[]
+     */
+    private $entityElementsWithAnyNone = array();
+
     public function __construct(ColumnsExtractor $columnsExtractor)
     {
         $this->columnsExtractor = $columnsExtractor;
@@ -57,8 +64,9 @@ class AnyNoneFilterListener
      */
     public function addAnyNoneColumns(FormEvent $event)
     {
+        $this->entityElementsWithAnyNone = $this->columnsExtractor->getEntitiesColumnsByName($event->getForm());
         $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
-            'data' => json_encode($this->columnsExtractor->getEntitiesColumnsByName($event->getForm())),
+            'data' => json_encode($this->entityElementsWithAnyNone),
         ));
         $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class);
     }
@@ -74,8 +82,8 @@ class AnyNoneFilterListener
     {
         $formData = $event->getData();
 
-        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS]) && isset($formData[self::KEY_ANY_NONE_COLUMNS])) {
-            $anyNoneColumns = json_decode(stripslashes($formData[self::KEY_ANY_NONE_COLUMNS]));
+        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS])) { // only run once
+            $anyNoneColumns = $this->entityElementsWithAnyNone;
             $newAnyNoneColumns = array(self::KEY_ANY_NONE_NOT_DEFINED => array(), self::KEY_ANY_COLUMNS => array(), self::KEY_NONE_COLUMNS => array());
             foreach ($anyNoneColumns as $columnName) {
                 if (isset($formData[$columnName])) {
