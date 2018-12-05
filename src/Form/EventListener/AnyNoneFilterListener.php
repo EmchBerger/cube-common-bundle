@@ -83,9 +83,13 @@ class AnyNoneFilterListener
         // field transfers data to frontend (javascript) to append selecions
         $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
             'data' => json_encode($this->entityElementsWithAnyNone),
+            'disabled' => true,
         ));
         // field transfers current selections to frontend (javascript) and to ..\Filter\FilterQueryCondition
-        $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class);
+        $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class, array(
+            // does not transfer data to FilterQueryContion: 'disabled' => true,
+            'attr' => array('disabled' => 'disabled'),
+        ));
     }
 
     /**
@@ -100,7 +104,7 @@ class AnyNoneFilterListener
     {
         $formData = $event->getData();
 
-        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS])) { // only run once
+        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS])) { // only run once (skip after redirecting)
             $anyNoneColumns = $this->entityElementsWithAnyNone;
             $newAnyNoneColumns = array(self::KEY_ANY_NONE_NOT_DEFINED => array(), self::KEY_ANY_COLUMNS => array(), self::KEY_NONE_COLUMNS => array());
             foreach ($anyNoneColumns as $columnName) {
