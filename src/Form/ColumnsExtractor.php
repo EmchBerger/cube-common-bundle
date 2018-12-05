@@ -4,6 +4,7 @@ namespace CubeTools\CubeCommonBundle\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormConfigInterface;
 use Symfony\Component\Form\FormInterface;
 
 /**
@@ -31,37 +32,37 @@ class ColumnsExtractor
     /**
      * Method can be overwritten in order to make custom label for columns.
      *
-     * @param \Symfony\Component\Form\Form $formElement
+     * @param FormInterface|FormConfigInterface $formElement
      *
      * @return string label for column
      */
     public function getColumnLabel($formElement)
     {
-        return $formElement->getConfig()->getOptions()['label'];
+        return $this->getConfigOf($formElement)->getOptions()['label'];
     }
 
     /**
      * Method can be overwritten in order to make custom name for columns.
      *
-     * @param \Symfony\Component\Form\Form $formElement
+     * @param FormInterface|FormConfigInterface $formElement
      *
      * @return string name for column
      */
     public function getColumnName($formElement)
     {
-        return $formElement->getConfig()->getName();
+        return $this->getConfigOf($formElement)->getName();
     }
 
     /**
      * Method can be overwritten in order to make custom style for columns.
      *
-     * @param \Symfony\Component\Form\Form $formElement
+     * @param FormInterface|FormConfigInterface $formElement
      *
      * @return string style for column
      */
     public function getColumnStyle($formElement)
     {
-        $formElementOptions = $formElement->getConfig()->getOptions();
+        $formElementOptions = $this->getConfigOf($formElement)->getOptions();
 
         return ($formElementOptions['attr']['style'] ?? '');
     }
@@ -78,8 +79,8 @@ class ColumnsExtractor
         $columns = array();
 
         foreach ($form->all() as $formElement) {
-            $elementOptions = $formElement->getConfig()->getOptions();
-            if (get_class($formElement->getConfig()->getType()->getInnerType()) != HiddenType::class &&
+            $elementOptions = $this->getConfigOf($formElement)->getOptions();
+            if (get_class($this->getConfigOf($formElement)->getType()->getInnerType()) != HiddenType::class &&
                 !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn']) &&
                 $this->validateColumn($formElement)
             ) {
@@ -102,9 +103,9 @@ class ColumnsExtractor
         $columns = array();
 
         foreach ($form->all() as $formElement) {
-            $elementOptions = $formElement->getConfig()->getOptions();
+            $elementOptions = $this->getConfigOf($formElement)->getOptions();
             if (in_array(
-                get_class($formElement->getConfig()->getType()->getInnerType()),
+                get_class($this->getConfigOf($formElement)->getType()->getInnerType()),
                 array('Symfony\Bridge\Doctrine\Form\Type\EntityType', 'Tetranz\Select2EntityBundle\Form\Type\Select2EntityType')
                 ) &&
                 !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn'])
@@ -121,7 +122,7 @@ class ColumnsExtractor
      * Method counts number of custom fields (result available via getCustomFieldsNumberOfColumns method).
      *
      * @param FormInterface|FormBuilderInterface $form    form, from which custom fields are extracted
-     * @param array                                $columns current array with column names (can be empty, then return array contains only custom fields)
+     * @param string[]                           $columns current array with column names (can be empty, then return array contains only custom fields)
      *
      * @return array array from input with custom fields attached
      */
@@ -130,7 +131,7 @@ class ColumnsExtractor
         $this->customFieldsNumberOfColumns = 0;
 
         foreach ($form as $formElement) {
-            $elementOptions = $formElement->getConfig()->getOptions();
+            $elementOptions = $this->getConfigOf($formElement)->getOptions();
             if (isset($elementOptions['translation_domain']) && $elementOptions['translation_domain'] == 'custom_fields') {
                 $columns[] = $this->getColumnLabel($formElement);
                 $this->customFieldsNumberOfColumns++;
@@ -148,5 +149,21 @@ class ColumnsExtractor
     public function getCustomFieldsNumberOfColumns()
     {
         return $this->customFieldsNumberOfColumns;
+    }
+
+    /**
+     * Gets the config for form, formbuilder and similar classes.
+     *
+     * @param FormInterface|FormConfigInterface $form
+     *
+     * @return FormConfigInterface
+     */
+    public static function getConfigOf($form)
+    {
+        if (!$form instanceof FormConfigInterface) {
+            $form = $form->getConfig();
+        }
+
+        return $form;
     }
 }
