@@ -38,6 +38,8 @@ services:
             - [setPaginator, ['@?knp_paginator']]
     cube_common.filtering: '@CubeTools\CubeCommonBundle\Filter\FilterService'
 
+    CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder:
+        class: CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder
     cube_common.session_keep_on_success:
         class: CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener
         tags:
@@ -63,9 +65,14 @@ services:
         class: CubeTools\CubeCommonBundle\DataHandling\CollectionHandler
     CubeTools\CubeCommonBundle\Form\ColumnsExtractor:
         class: CubeTools\CubeCommonBundle\Form\ColumnsExtractor
+    CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener:
+        class: CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener
+        autowire: true
     CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
         class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
         autowire: true
+        calls:
+            - [setFilterEntityQueryBuilder, ['@CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder']]
     CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator:
         class: CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator
         autowire: true
@@ -78,3 +85,10 @@ services:
         calls:
             - [setMessageContentGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ContentGenerator']]
             - [setMessageParticipantsGenerator, ['@CubeTools\CubeCommonBundle\Subscriptions\Message\ParticipantsGenerator']]
+    CubeTools\CubeCommonBundle\Security\VersatileUserProvider:
+        class: CubeTools\CubeCommonBundle\Security\VersatileUserProvider
+        autowire: true
+    CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider:
+        class: CubeTools\CubeCommonBundle\Security\VersatileLdapBindAuthenticationProvider
+        abstract: true
+        arguments: ['', '', '', '', '', '%security.authentication.hide_user_not_found%']

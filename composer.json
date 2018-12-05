@@ -12,17 +12,18 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "symfony/config": "^2.7|^3.0"
+        "friendsofsymfony/user-bundle": "2.0.*",
+        "symfony/config": "^2.7|^3.0|^4.0"
     },
     "require-dev": {
         "cubetools/cube-common-develop": "dev-development@dev",
         "liuggio/excelbundle": "~2.0",
         "phpstan/phpstan": "^0.9.1",
-        "symfony/css-selector": "^3.4",
-        "symfony/dom-crawler": "^3.3",
-        "symfony/form": "^2.7|^3.0",
-        "symfony/http-foundation": "^2.7|^3.0",
-        "symfony/phpunit-bridge": "^2.7|^3.0"
+        "symfony/css-selector": "^3.4|^4.0",
+        "symfony/dom-crawler": "^3.3|^4.0",
+        "symfony/form": "^2.7|^3.0|^4.0",
+        "symfony/http-foundation": "^2.7|^3.0|^4.0",
+        "symfony/phpunit-bridge": "^2.7|^3.0|^4.0"
     },
     "suggest": {
         "symfony/form": "for Form\\*",
