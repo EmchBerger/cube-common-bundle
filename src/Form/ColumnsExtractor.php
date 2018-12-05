@@ -3,6 +3,8 @@
 namespace CubeTools\CubeCommonBundle\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
 
 /**
  * Class for getting column properties from filter form (possibility to add custom validation in extended class)
@@ -67,7 +69,7 @@ class ColumnsExtractor
     /**
      * Method for getting array with label of columns.
      *
-     * @param \Symfony\Component\Form\AbstractType $form form object, from which elements would be taken
+     * @param FormInterface|FormBuilderInterface $form form object, from which elements would be taken
      *
      * @return array string[] labels for columns
      */
@@ -91,7 +93,7 @@ class ColumnsExtractor
     /**
      * Method for getting array with name of columns, for which entities can be selected.
      *
-     * @param \Symfony\Component\Form\AbstractType $form form object, from which elements would be taken
+     * @param FormInterface|FormBuilderInterface $form form object, from which elements would be taken
      *
      * @return array string[] names for columns
      */
@@ -118,7 +120,7 @@ class ColumnsExtractor
      * Method adding custom fields labels to given array with column names.
      * Method counts number of custom fields (result available via getCustomFieldsNumberOfColumns method).
      *
-     * @param \Symfony\Component\Form\AbstractType $form    form, from which custom fields are extracted
+     * @param FormInterface|FormBuilderInterface $form    form, from which custom fields are extracted
      * @param array                                $columns current array with column names (can be empty, then return array contains only custom fields)
      *
      * @return array array from input with custom fields attached
