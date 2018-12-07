@@ -86,6 +86,7 @@ class AnyNoneFilterListener
         $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
             'data' => json_encode($this->entityElementsWithAnyNone),
             'disabled' => true,
+            'mapped' => false,
         ));
         // field transfers current selections to frontend (javascript) and to ..\Filter\FilterQueryCondition
         $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class, array(
