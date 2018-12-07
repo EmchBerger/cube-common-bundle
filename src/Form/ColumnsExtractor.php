@@ -38,7 +38,7 @@ class ColumnsExtractor
      */
     public function getColumnLabel($formElement)
     {
-        return $this->getConfigOf($formElement)->getOptions()['label'];
+        return static::getConfigOf($formElement)->getOptions()['label'];
     }
 
     /**
@@ -50,7 +50,7 @@ class ColumnsExtractor
      */
     public function getColumnName($formElement)
     {
-        return $this->getConfigOf($formElement)->getName();
+        return static::getConfigOf($formElement)->getName();
     }
 
     /**
@@ -62,7 +62,7 @@ class ColumnsExtractor
      */
     public function getColumnStyle($formElement)
     {
-        $formElementOptions = $this->getConfigOf($formElement)->getOptions();
+        $formElementOptions = static::getConfigOf($formElement)->getOptions();
 
         return ($formElementOptions['attr']['style'] ?? '');
     }
@@ -79,8 +79,8 @@ class ColumnsExtractor
         $columns = array();
 
         foreach ($form->all() as $formElement) {
-            $elementOptions = $this->getConfigOf($formElement)->getOptions();
-            if (get_class($this->getConfigOf($formElement)->getType()->getInnerType()) != HiddenType::class &&
+            $elementOptions = static::getConfigOf($formElement)->getOptions();
+            if (get_class(static::getConfigOf($formElement)->getType()->getInnerType()) != HiddenType::class &&
                 !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn']) &&
                 $this->validateColumn($formElement)
             ) {
@@ -103,9 +103,9 @@ class ColumnsExtractor
         $columns = array();
 
         foreach ($form->all() as $formElement) {
-            $elementOptions = $this->getConfigOf($formElement)->getOptions();
+            $elementOptions = static::getConfigOf($formElement)->getOptions();
             if (in_array(
-                get_class($this->getConfigOf($formElement)->getType()->getInnerType()),
+                get_class(static::getConfigOf($formElement)->getType()->getInnerType()),
                 array('Symfony\Bridge\Doctrine\Form\Type\EntityType', 'Tetranz\Select2EntityBundle\Form\Type\Select2EntityType')
                 ) &&
                 !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn'])
@@ -131,7 +131,7 @@ class ColumnsExtractor
         $this->customFieldsNumberOfColumns = 0;
 
         foreach ($form as $formElement) {
-            $elementOptions = $this->getConfigOf($formElement)->getOptions();
+            $elementOptions = static::getConfigOf($formElement)->getOptions();
             if (isset($elementOptions['translation_domain']) && $elementOptions['translation_domain'] == 'custom_fields') {
                 $columns[] = $this->getColumnLabel($formElement);
                 $this->customFieldsNumberOfColumns++;
