@@ -60,13 +60,15 @@ class AnyNoneFilterListener
     }
 
     /**
-     * Adds data for AnyNoneFilter to the form (events, ...).
+     * Adds events for AnyNoneFilter to the form.
+     *
+     * events: PRE_SET_DATA and PRE_SUBMIT
      *
      * @param \CubeTools\CubeCommonBundle\Form\EventListener\FormBuilderInterface $builder
      */
     public function addToBuilder(FormBuilderInterface $builder)
     {
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, array($this, 'addAnyNoneColumns'));
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, array($this, 'addAnyNoneColumns'), -20 /*run as last event*/);
         $builder->addEventListener(FormEvents::PRE_SUBMIT, array($this, 'processAnyNoneColumns'));
     }
 
