@@ -4,7 +4,9 @@ namespace CubeTools\CubeCommonBundle\Form\EventListener;
 
 use CubeTools\CubeCommonBundle\Form\ColumnsExtractor;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 
 class AnyNoneFilterListener
 {
@@ -45,26 +47,57 @@ class AnyNoneFilterListener
      */
     protected $columnsExtractor;
 
+    /**
+     * Elements (listing entities) containing AnyNoneSelection
+     *
+     * @var string[]
+     */
+    private $entityElementsWithAnyNone = array();
+
     public function __construct(ColumnsExtractor $columnsExtractor)
     {
         $this->columnsExtractor = $columnsExtractor;
     }
 
     /**
+     * Adds events for AnyNoneFilter to the form.
+     *
+     * events: PRE_SET_DATA and PRE_SUBMIT
+     *
+     * @param \CubeTools\CubeCommonBundle\Form\EventListener\FormBuilderInterface $builder
+     */
+    public function addToBuilder(FormBuilderInterface $builder)
+    {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, array($this, 'addAnyNoneColumns'), -20 /*run as last event*/);
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, array($this, 'processAnyNoneColumns'));
+    }
+
+    /**
      * Method to be called as PRE_SET_DATA listener for form.
+     *
+     * Add fields to the form to submit data to frontend.
      *
      * @param \Symfony\Component\Form\FormEvent $event
      */
     public function addAnyNoneColumns(FormEvent $event)
     {
+        $this->entityElementsWithAnyNone = $this->columnsExtractor->getEntitiesColumnsByName($event->getForm());
+        // field transfers data to frontend (javascript) to append selecions
         $event->getForm()->add(self::KEY_ANY_NONE_COLUMNS, HiddenType::class, array(
-            'data' => json_encode($this->columnsExtractor->getEntitiesColumnsByName($event->getForm())),
+            'data' => json_encode($this->entityElementsWithAnyNone),
+            'disabled' => true,
+            'mapped' => false,
         ));
-        $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class);
+        // field transfers current selections to frontend (javascript) and to ..\Filter\FilterQueryCondition
+        $event->getForm()->add(self::KEY_ANY_NONE_SELECTED_COLUMNS, HiddenType::class, array(
+            // does not transfer data to FilterQueryContion: 'disabled' => true,
+            'attr' => array('disabled' => 'disabled'),
+        ));
     }
 
     /**
      * Method to be called as PRE_SUBMIT listener for form.
+     *
      * Method analyses form input and process fields, where any or none record option can be set.
      * At the end, method modify form input (avoid inproper values when matching with entities).
      *
@@ -74,8 +107,8 @@ class AnyNoneFilterListener
     {
         $formData = $event->getData();
 
-        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS]) && isset($formData[self::KEY_ANY_NONE_COLUMNS])) {
-            $anyNoneColumns = json_decode(stripslashes($formData[self::KEY_ANY_NONE_COLUMNS]));
+        if (empty($formData[self::KEY_ANY_NONE_SELECTED_COLUMNS])) { // only run once (skip after redirecting)
+            $anyNoneColumns = $this->entityElementsWithAnyNone;
             $newAnyNoneColumns = array(self::KEY_ANY_NONE_NOT_DEFINED => array(), self::KEY_ANY_COLUMNS => array(), self::KEY_NONE_COLUMNS => array());
             foreach ($anyNoneColumns as $columnName) {
                 if (isset($formData[$columnName])) {
@@ -91,6 +124,7 @@ class AnyNoneFilterListener
                     $newAnyNoneColumns[self::KEY_ANY_NONE_NOT_DEFINED][] = $columnName;
                 }
             }
+            // saved for frontend and for applying filter
             $formData[self::KEY_ANY_NONE_SELECTED_COLUMNS] = json_encode($newAnyNoneColumns);
             $event->setData($formData);
         }
