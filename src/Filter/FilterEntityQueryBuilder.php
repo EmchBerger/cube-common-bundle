@@ -29,6 +29,11 @@ class FilterEntityQueryBuilder
     const EXPRESSION_NOT_NULL = ' IS NOT NULL';
 
     /**
+     * Phrase used in expression for checked value (have to be looked for before "IS NULL")
+     */
+    const EXPRESSION_ZERO_OR_NULL = ' = 0 OR ';
+
+    /**
      * Phrase used in expression looking for null value
      */
     const EXPRESSION_NULL = ' IS NULL';
@@ -44,11 +49,6 @@ class FilterEntityQueryBuilder
     const EXPRESSION_MORE_OR_EQUAL = ' >= :';
 
     /**
-     * Phrase used in expression for checked value
-     */
-    const EXPRESSION_ZERO_OR_NULL = ' = 0 OR ';
-
-    /**
      * Phrase used in expression for date range (to)
      */
     const EXPRESSION_DATE_RANGE_TO = ' < DATE_ADD(:';
@@ -61,7 +61,7 @@ class FilterEntityQueryBuilder
     /**
      * @var array list of db expressions used to process sql query
      */
-    protected $dbExpressions = array(self::EXPRESSION_EQUAL, self::EXPRESSION_IN, self::EXPRESSION_LIKE, self::EXPRESSION_NOT_NULL, self::EXPRESSION_NULL, self::EXPRESSION_NOT_ZERO, self::EXPRESSION_MORE_OR_EQUAL, self::EXPRESSION_ZERO_OR_NULL, self::EXPRESSION_DATE_RANGE_TO);
+    protected $dbExpressions = array(self::EXPRESSION_EQUAL, self::EXPRESSION_IN, self::EXPRESSION_LIKE, self::EXPRESSION_NOT_NULL, self::EXPRESSION_ZERO_OR_NULL, self::EXPRESSION_NULL, self::EXPRESSION_NOT_ZERO, self::EXPRESSION_MORE_OR_EQUAL, self::EXPRESSION_DATE_RANGE_TO);
 
     /**
      * @var object analysed object

@@ -27,7 +27,7 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->object = new FilterEntityQueryBuilder();
 
         $this->analysedEntity = $this->getMockBuilder('MockNotExistingEntity')
-            ->setMethods(array('getTitle', 'getPosition', 'getZeroValue', 'getNullValue', 'getActualDate', 'getOneWeekBeforeDate', 'getContainsCollection', 'getNotContainsCollection', 'getRelatedEntity', 'getNotRelatedEntity'))
+            ->setMethods(array('getTitle', 'getPosition', 'getZeroValue', 'getNullValue', 'getFalseValue', 'getActualDate', 'getOneWeekBeforeDate', 'getContainsCollection', 'getNotContainsCollection', 'getRelatedEntity', 'getNotRelatedEntity'))
             ->getMock();
         $this->analysedEntity->expects($this->any())
             ->method('getTitle')
@@ -44,6 +44,10 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->analysedEntity->expects($this->any())
             ->method('getNullValue')
             ->will($this->returnValue(null))
+        ;
+        $this->analysedEntity->expects($this->any())
+            ->method('getFalseValue')
+            ->will($this->returnValue(false))
         ;
         $actualDateTime = new \DateTime();
         $this->analysedEntity->expects($this->any())
@@ -179,6 +183,9 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertTrue(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_ZERO_OR_NULL, $this->analysedEntity->getZeroValue())
+        );
+        $this->assertTrue(
+            $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_ZERO_OR_NULL, $this->analysedEntity->getFalseValue())
         );
         $this->assertFalse(
             $this->object->evaluateExpression(FilterEntityQueryBuilder::EXPRESSION_ZERO_OR_NULL, $this->analysedEntity->getPosition())
