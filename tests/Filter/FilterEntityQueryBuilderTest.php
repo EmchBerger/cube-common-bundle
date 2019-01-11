@@ -62,7 +62,7 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         ;
 
         // setting mock collection:
-        $mockContainsCollection = $this->getMockBuilder('MockNotExistingCollection')
+        $mockContainsCollection = $this->getMockBuilder('MockExistingCollection')
             ->setMethods(array('contains'))
             ->getMock()
         ;
@@ -336,6 +336,24 @@ class FilterEntityQueryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->object->leftJoin('s.notContainsCollection', 'scc');
         $this->object->andWhereIn('scc.id IN (:sccIds)');
         $this->assertFalse(
+            boolval(count($this->object->getQuery()->getResult()))
+        );
+
+        $this->object->resetObject();
+        $this->object->setParameter('sccIds', array(1, 2, 3));
+        $this->object->leftJoin('s.containsCollection', 'scc');
+        $this->object->addGetterProvider('getContainsCollection', array('getNotContainsCollection'));
+        $this->object->andWhereIn('scc.id IN (:sccIds)');
+        $this->assertFalse(
+            boolval(count($this->object->getQuery()->getResult()))
+        );
+
+        $this->object->resetObject();
+        $this->object->setParameter('sccIds', array(1, 2, 3));
+        $this->object->leftJoin('s.notContainsCollection', 'scc');
+        $this->object->addGetterProvider('getNotContainsCollection', array('getContainsCollection'));
+        $this->object->andWhereIn('scc.id IN (:sccIds)');
+        $this->assertTrue(
             boolval(count($this->object->getQuery()->getResult()))
         );
     }

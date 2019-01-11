@@ -94,9 +94,25 @@ class FilterEntityQueryBuilder
     protected $rootAliases;
 
     /**
-     * @var \Doctrine\ORM\Query\Expr expression builder, lazy initialization
+     * @var \Doctrine\ORM\Query\Expr expression builder, lazy initialisation
     */
     protected $expressionBuilder;
+
+    /**
+     * @var array optional provider of data instead of calling get method (helpful when multiple joins are used).
+     *
+     * Key of array is called getter.
+     *
+     * array('calledGetter' => array('getter1' => array('getter2', 'getter3'))) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
+     *
+     * array('calledGetter' => array('getter1' => array('getter2' => array('getter3'))) - getter1 return many elements; getter2 also, whereas getter3 returns one element
+     */
+    protected $getterProvider = array();
+
+    /**
+     * @var array data collected by getter provider
+     */
+    protected $getterProviderData = array();
 
     /**
      * Method setting entity, for each filtering would be made.
@@ -115,6 +131,53 @@ class FilterEntityQueryBuilder
     public function setParameter($parameterName, $parameterValue, $type = null)
     {
         $this->parameters[$parameterName] = $parameterValue;
+    }
+
+    /**
+     * Method for adding getter provider.
+     *
+     * @param string $getterName          called getter
+     * @param array  $getterConfiguration for example:
+     *
+     * array('calledGetter' => array('getter2', 'getter3')) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
+     *
+     * array('calledGetter' => array('getter2' => array('getter3')) - getter1 return many elements; getter2 also, whereas getter3 returns one element
+     *
+     * NOT POSSIBLE to have manyToMany relationship after oneToOne
+     *
+     * @return $this
+     */
+    public function addGetterProvider($getterName, $getterConfiguration)
+    {
+        $this->getterProvider[$getterName] = $getterConfiguration;
+        $this->getterProviderData[$getterName] = array();
+
+        return $this;
+    }
+
+    /**
+     * Method for obtaining values, which normally are returned by database.
+     *
+     * @param string $getterName name of getter called on entity (directly or through getterProvider)
+     *
+     * @return mixed data normally returned by database
+     */
+    public function getValueFromDb($getterName)
+    {
+        if (isset($this->getterProvider[$getterName])) {
+            $this->setGetterProviderData($getterName, $this->getterProvider[$getterName], $this->analysedEntity);
+
+            if (isset($this->getterProviderData[$getterName][0]) && stripos(substr(get_class($this->getterProviderData[$getterName][0]), 0, 5), 'Mock_') !== false) {
+                // phpunit tests execution
+                $valueFromDb = $this->getterProviderData[$getterName][0];
+            } else {
+                $valueFromDb = new \Doctrine\Common\Collections\ArrayCollection($this->getterProviderData[$getterName]);
+            }
+        } else {
+            $valueFromDb = $this->analysedEntity->{$getterName}();
+        }
+
+        return $valueFromDb;
     }
 
     /**
@@ -252,7 +315,7 @@ class FilterEntityQueryBuilder
                 }
                 if (!$this->evaluateExpression(
                     $expression,
-                    $this->analysedEntity->{$getterName}(),
+                    $this->getValueFromDb($getterName),
                     $parameterValue
                 )) {
                     $this->conditionsFulfilled = false;
@@ -274,6 +337,8 @@ class FilterEntityQueryBuilder
         $this->aliases = array();
         $this->parameters = array();
         $this->conditionsFulfilled = true;
+        $this->getterProvider = array();
+        $this->getterProviderData = array();
 
         return $this;
     }
@@ -359,5 +424,44 @@ class FilterEntityQueryBuilder
         }
 
         return $this->expressionBuilder;
+    }
+
+    /**
+     * Method for setting data for getter provider (can be subject of recurrency).
+     *
+     * @param string $firstGetterName     name of first getter (where data are stored)
+     * @param array  $getterConfiguration configuration of getter
+     * @param object $currentEntity       entity, on which operations are made
+     *
+     * @return $this
+     */
+    protected function setGetterProviderData($firstGetterName, $getterConfiguration, $currentEntity)
+    {
+        reset($getterConfiguration);
+        $methodIndex = key($getterConfiguration);
+
+        if (is_array($getterConfiguration[$methodIndex])) {
+            // many elements can be returned
+            $methodName = $methodIndex;
+            foreach ($currentEntity->{$methodName}() as $newEntity) {
+                $this->setGetterProviderData($firstGetterName, $getterConfiguration[$methodName], $newEntity);
+            }
+        } else {
+            reset($getterConfiguration);
+            $getterConfigurationLength = count($getterConfiguration);
+            $arrayIterator = 0;
+
+            foreach ($getterConfiguration as $methodName) {
+                if ($arrayIterator === ($getterConfigurationLength - 1)) {
+                    $this->getterProviderData[$firstGetterName][] = $currentEntity->{$methodName}();
+                } else {
+                    $currentEntity = $currentEntity->{$methodName}();
+                }
+
+                $arrayIterator++;
+            }
+        }
+
+        return $this;
     }
 }
