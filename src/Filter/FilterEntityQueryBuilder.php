@@ -103,14 +103,14 @@ class FilterEntityQueryBuilder
      *
      * Key of array is called getter.
      *
-     * array('calledGetter' => array('getter1' => array('getter2', 'getter3'))) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
+     * array('calledGetter' => array(array('getter1' => array('getter2', 'getter3')))) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
      *
-     * array('calledGetter' => array('getter1' => array('getter2' => array('getter3'))) - getter1 return many elements; getter2 also, whereas getter3 returns one element
+     * array('calledGetter' => array(array('getter1' => array('getter2' => array('getter3')))) - getter1 return many elements; getter2 also, whereas getter3 returns one element
      */
     protected $getterProvider = array();
 
     /**
-     * @var array data collected by getter provider
+     * @var array data collected by getter provider (or multiple providers for called getter - merge of results)
      */
     protected $getterProviderData = array();
 
@@ -134,7 +134,7 @@ class FilterEntityQueryBuilder
     }
 
     /**
-     * Method for adding getter provider.
+     * Method for adding getter provider. Multiple getter providers can be added for one getterName (merge of results would be taken).
      *
      * @param string $getterName          called getter
      * @param array  $getterConfiguration for example:
@@ -149,7 +149,10 @@ class FilterEntityQueryBuilder
      */
     public function addGetterProvider($getterName, $getterConfiguration)
     {
-        $this->getterProvider[$getterName] = $getterConfiguration;
+        if (!isset($this->getterProvider[$getterName])) {
+            $this->getterProvider[$getterName] = array();
+        }
+        $this->getterProvider[$getterName][] = $getterConfiguration;
         $this->getterProviderData[$getterName] = array();
 
         return $this;
@@ -165,11 +168,20 @@ class FilterEntityQueryBuilder
     public function getValueFromDb($getterName)
     {
         if (isset($this->getterProvider[$getterName])) {
-            $this->setGetterProviderData($getterName, $this->getterProvider[$getterName], $this->analysedEntity);
+            foreach ($this->getterProvider[$getterName] as $getterProviderElement) {
+                $this->setGetterProviderData($getterName, $getterProviderElement, $this->analysedEntity);
+            }
 
             if (isset($this->getterProviderData[$getterName][0]) && stripos(substr(get_class($this->getterProviderData[$getterName][0]), 0, 5), 'Mock_') !== false) {
                 // phpunit tests execution
-                $valueFromDb = $this->getterProviderData[$getterName][0];
+                foreach ($this->getterProviderData[$getterName] as $getterProviderDataElement) {
+                    if (stripos(substr(get_class($getterProviderDataElement), 0, 27), 'Mock_MockExistingCollection') !== false) {
+                        $valueFromDb = $getterProviderDataElement;
+                    }
+                }
+                if (!isset($valueFromDb)) {
+                    $valueFromDb = $this->getterProviderData[$getterName][0];
+                }
             } else {
                 $valueFromDb = new \Doctrine\Common\Collections\ArrayCollection($this->getterProviderData[$getterName]);
             }
