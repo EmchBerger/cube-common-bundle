@@ -68,6 +68,7 @@ services:
     CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener:
         class: CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener
         autowire: true
+        shared: false
     CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications:
         class: CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications
         autowire: true
