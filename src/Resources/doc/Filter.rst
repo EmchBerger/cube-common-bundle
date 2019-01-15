@@ -7,9 +7,10 @@ The custom ``FilterFormType`` extends ``AbstractFilterForm``.
 Filtering (in a controller action or similar) is done like this:
 
 .. code-block:: php
+    // $ccFiltering is injected class CubeTools\CubeCommonBundle\Filter\FilterService
 
     $filterForm = $this->createForm(YourFilterFormType::class, null, $options); // $options is optional, details see below
-    $fData = $this->get('cube_common.filtering')->getFilterData($filterForm);
+    $fData = $ccFiltering->getFilterData($filterForm);
     if ($fData->getRedirect()) {
         return $this->redirect($fData->getRedirect());
     }
@@ -68,7 +69,7 @@ Of course filters can also be used without features like query builders or ``$fD
   .. code-block:: php
 
     $filterForm = $this->createForm(YourFilterFormType::class, null, $options); // $options is optional, details see below
-    $fData = $this->get('cube_common.filtering')->getFilterData($filterform);
+    $fData = $ccFiltering->getFilterData($filterform);
 
     ...
 

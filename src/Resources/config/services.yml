@@ -1,26 +1,43 @@
 #parameters:
 
 services:
-    cube_common.project_version:
+    CubeTools\CubeCommonBundle\Project\ProjectVersionGit:
         class: CubeTools\CubeCommonBundle\Project\ProjectVersionGit
         arguments:
             - '%kernel.root_dir%'
             - '%kernel.cache_dir%'
-    CubeTools\CubeCommonBundle\Project\ProjectVersionGit: '@cube_common.project_version'
-    cube_common.user_settings:
+    cube_common.project_version: '@CubeTools\CubeCommonBundle\Project\ProjectVersionGit'
+
+    CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage:
         class: CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage
         arguments:
             - "@doctrine"
             - "@security.token_storage"
             - "@event_dispatcher"
-    CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage: '@cube_common.user_settings'
-    cube_common.filtering:
+    cube_common.user_settings: '@CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage'
+
+    CubeTools\CubeCommonBundle\Controller\DevelopmentSupportController:
+        class: CubeTools\CubeCommonBundle\Controller\DevelopmentSupportController
+        public: true
+        arguments:
+            - '@Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface'
+            - '@CubeTools\CubeCommonBundle\Project\ProjectVersionGit'
+            - '@Symfony\Component\HttpFoundation\RequestStack'
+
+    CubeTools\CubeCommonBundle\Controller\ColumnSelectorController:
+        class: CubeTools\CubeCommonBundle\Controller\ColumnSelectorController
+        public: true
+        calls:
+          - [ setUserSettingsStorage, ['@?CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage'] ]
+
+    CubeTools\CubeCommonBundle\Filter\FilterService:
         class: CubeTools\CubeCommonBundle\Filter\FilterService
         arguments:
             - "@request_stack"
         calls:
             - [setPaginator, ['@?knp_paginator']]
-    CubeTools\CubeCommonBundle\Filter\FilterService: '@cube_common.filtering'
+    cube_common.filtering: '@CubeTools\CubeCommonBundle\Filter\FilterService'
+
     CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder:
         class: CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder
     cube_common.session_keep_on_success:
