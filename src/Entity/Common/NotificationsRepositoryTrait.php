@@ -30,29 +30,31 @@ trait NotificationsRepositoryTrait
      */
     public function getNotificationsForEntityBase($entity, $searchForNullEntityId, $noConditions = false)
     {
-        $this->setWatchedEntities();
         $notificationsOutput = array();
-        $entityClassName = $this->_em->getMetadataFactory()->getMetadataFor(get_class($entity))->getName();
+        if (null !== $entity) {
+            $this->setWatchedEntities();
+            $entityClassName = $this->_em->getMetadataFactory()->getMetadataFor(get_class($entity))->getName();
 
-        if (in_array($entityClassName, $this->watchedEntities)) { // entity is watched - now check id of entity
-            $qb = $this->createQueryBuilder('n')
-                ->andWhere('n.entityClass = :entityClass')
-            ;
+            if (in_array($entityClassName, $this->watchedEntities)) { // entity is watched - now check id of entity
+                $qb = $this->createQueryBuilder('n')
+                    ->andWhere('n.entityClass = :entityClass')
+                ;
 
-            if ($searchForNullEntityId) {
-                $qb->andWhere('n.entityId = :entityId OR n.entityId IS NULL');
-            } else {
-                $qb->andWhere('n.entityId = :entityId');
+                if ($searchForNullEntityId) {
+                    $qb->andWhere('n.entityId = :entityId OR n.entityId IS NULL');
+                } else {
+                    $qb->andWhere('n.entityId = :entityId');
+                }
+
+                if ($noConditions) {
+                    $qb->andWhere('n.triggerChangedColumns IS NULL AND n.filterBefore IS NULL AND n.filterAfter IS NULL');
+                }
+
+                $qb->setParameter('entityClass', $entityClassName)
+                    ->setParameter('entityId', (is_null($entity->getId()) ? -1 : $entity->getId()))
+                ;
+                $notificationsOutput = $qb->getQuery()->getResult();
             }
-
-            if ($noConditions) {
-                $qb->andWhere('n.triggerChangedColumns IS NULL AND n.filterBefore IS NULL AND n.filterAfter IS NULL');
-            }
-
-            $qb->setParameter('entityClass', $entityClassName)
-                ->setParameter('entityId', (is_null($entity->getId()) ? -1 : $entity->getId()))
-            ;
-            $notificationsOutput = $qb->getQuery()->getResult();
         }
 
         return $notificationsOutput;
