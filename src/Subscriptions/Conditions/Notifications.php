@@ -62,6 +62,27 @@ class Notifications extends AbstractCondition
     protected $filterBuilderMethodName;
 
     /**
+     * Method preparing filter form data (which are not processed by finishView method)
+     *
+     * @param array $data form data to be processed
+     *
+     * @return array processed form data
+     */
+    public static function prepareFilterFormData($data)
+    {
+        foreach ($data as $dataKey => $dataValue) {
+            if (is_array($dataValue) &&
+                array_keys($dataValue) !== range(0, count($dataValue) - 1)
+            ) {
+                // associative array - switch to sequential
+                $data[$dataKey] = array_keys($dataValue);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
      * Method setting entity query builder.
      *
      * @param \CubeTools\CubeCommonBundle\Filter\FilterEntityQueryBuilder $filterEntityQueryBuilder
@@ -110,22 +131,6 @@ class Notifications extends AbstractCondition
     }
 
     /**
-     * Method setting information, which columns which were changed, were subject to trigger.
-     */
-    protected function setChangedColumns()
-    {
-        $changedColumns = array_keys($this->filterData[self::KEY_CHANGESET]);
-        $triggerChangedColumns = array(); // columns, which are changed and trigger notification
-
-        foreach ($changedColumns as $columnName) {
-            if ((empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS]) || empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS][0])) || in_array($columnName, $this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS])) {
-                $triggerChangedColumns[] = $columnName;
-            }
-        }
-        $this->outputData[self::KEY_TRIGGER_CHANGED_COLUMNS] = $triggerChangedColumns;
-    }
-
-    /**
      * Method checks, if filter for entity before change is set.
      *
      * @return bool true if filter before change set
@@ -143,6 +148,22 @@ class Notifications extends AbstractCondition
     public function isFilterAfterSet()
     {
         return (isset($this->filterData[self::KEY_FILTER_AFTER]) && !is_null($this->filterData[self::KEY_FILTER_AFTER]));
+    }
+
+    /**
+     * Method setting information, which columns which were changed, were subject to trigger.
+     */
+    protected function setChangedColumns()
+    {
+        $changedColumns = array_keys($this->filterData[self::KEY_CHANGESET]);
+        $triggerChangedColumns = array(); // columns, which are changed and trigger notification
+
+        foreach ($changedColumns as $columnName) {
+            if ((empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS]) || empty($this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS][0])) || in_array($columnName, $this->filterData[self::KEY_TRIGGER_CHANGED_COLUMNS])) {
+                $triggerChangedColumns[] = $columnName;
+            }
+        }
+        $this->outputData[self::KEY_TRIGGER_CHANGED_COLUMNS] = $triggerChangedColumns;
     }
 
     /**
