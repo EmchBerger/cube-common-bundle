@@ -136,8 +136,9 @@ class DataDogAudit extends AbstractBaseAudit
         // doc is in interface
 
         $qb = $this->getAllVersionsQb($entity);
+        $outputArray = $this->auditLogToDiff($qb);
 
-        return $this->auditLogToDiff($qb);
+        return array_reverse($outputArray, true);
     }
 
     /**
