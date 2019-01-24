@@ -2,12 +2,12 @@
 
 namespace CubeTools\CubeCommonBundle\Controller;
 
+use CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use CubeTools\CubeCommonBundle\DataHandling\DataConversion;
@@ -15,6 +15,12 @@ use CubeTools\CubeCommonBundle\DataHandling\DataConversion;
 class ColumnSelectorController extends Controller
 {
     private static $colsButtons = array();
+    private $ccuSettings;
+
+    public function setUserSettingsStorage(UserSettingsStorage $ccuSettings = null)
+    {
+        $this->ccuSettings = $ccuSettings;
+    }
 
     /**
      * Renders the snippet to include for a ColumnSelector button.
@@ -78,10 +84,10 @@ class ColumnSelectorController extends Controller
 
     protected function getColsSettings($saveId)
     {
-        try {
-            return $this->get('cube_common.user_settings')->getUserSetting('column', $saveId);
-        } catch (ServiceNotFoundException $se) {
-            $msg = 'ERROR: missing service; '.$se->getMessage();
+        if ($this->ccuSettings) {
+            return $this->ccuSettings->getUserSetting('column', $saveId);
+        } else {
+            $msg = 'ERROR: missing service '.UserSettingsStorage::class;
             if (function_exists('dump')) {
                 $log = 'dump';
                 $log($msg);
@@ -96,7 +102,7 @@ class ColumnSelectorController extends Controller
         DataConversion::dataTextToDataInArray($settings);
 
         // error is handled by ajax caller
-        return $this->get('cube_common.user_settings')->setUserSetting('column', $saveId, $settings);
+        return $this->ccuSettings->setUserSetting('column', $saveId, $settings);
     }
 
     /**

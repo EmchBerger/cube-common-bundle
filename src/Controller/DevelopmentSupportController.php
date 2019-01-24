@@ -2,11 +2,14 @@
 
 namespace CubeTools\CubeCommonBundle\Controller;
 
+use CubeTools\CubeCommonBundle\Project\ProjectVersionGit;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Debug\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
@@ -17,6 +20,17 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
  */
 class DevelopmentSupportController extends Controller
 {
+    private $security;
+    private $projVer;
+    private $requestStack;
+
+    public function __construct(TokenStorageInterface $security, ProjectVersionGit $projVer, RequestStack $requestStack)
+    {
+        $this->security = $security;
+        $this->projVer = $projVer;
+        $this->requestStack = $requestStack;
+    }
+
     /**
      * Simplify reporting of a bug by prefilling the form.
      *
@@ -25,7 +39,7 @@ class DevelopmentSupportController extends Controller
      */
     public function reportBugAction(Request $request)
     {
-        $projVer = $this->get('cube_common.project_version');
+        $projVer = $this->projVer;
         $githubProjectUrl = $projVer->getGitRepoUrl();
         $version = $projVer->getVersionString();
         $verHash = $projVer->getGitHash();
@@ -56,14 +70,14 @@ class DevelopmentSupportController extends Controller
      */
     public function fullBugLinkAction(Request $request, $exception = null)
     {
-        $projVer = $this->get('cube_common.project_version');
+        $projVer = $this->projVer;
         $githubProjectUrl = $projVer->getGitRepoUrl();
         $version = $projVer->getVersionString();
         $verHash = $projVer->getGitHash();
 
         $reqInfo = $this->requestHandling($request);
         if ('/_fragment' === $request->getPathInfo()) {
-            $request = $this->get('request_stack')->getMasterRequest();
+            $request = $this->requestStack->getMasterRequest();
         }
         $reqInfo['reallyRelated'] = $request->getHttpHost().$request->getRequestUri();
 
@@ -163,12 +177,12 @@ class DevelopmentSupportController extends Controller
      */
     private function getRoles()
     {
-        if ($this->get('security.token_storage')->getToken()) {
+        if ($this->security->getToken()) {
             return array_map(
                 function ($roleObj) {
                     return $roleObj->getRole();
                 },
-                $this->get('security.token_storage')->getToken()->getRoles()
+                $this->security->getToken()->getRoles()
             );
         } else {
             return array();
