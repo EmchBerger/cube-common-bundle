@@ -5,6 +5,46 @@ namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 trait LogsFunctionsTrait
 {
     /**
+     * Method for processing flags (boolean values).
+     *
+     * @param array  $diffElement row with diff
+     * @param array  $flagFields  name of columns, which are flags in $diffElement
+     * @param string $textTrue    text to display, when flag is true (default: 'Yes')
+     * @param string $textFalse   text to display, when flag is false (default: 'No')
+     *
+     * @return array $diffElement with processed flags
+     */
+    public static function processDiffFlags(array $diffElement, array $flagFields, $textTrue = 'Yes', $textFalse = 'No')
+    {
+        foreach ($flagFields as $flagField) {
+            if (isset($diffElement[$flagField])) {
+                $diffElement[$flagField] = ($diffElement[$flagField]) ? $textTrue : $textFalse;
+            }
+        }
+
+        return $diffElement;
+    }
+
+    /**
+     * Method for processing null values.
+     *
+     * @param array  $diffElement row with diff
+     * @param string $nullText    text to display, when field is null (default: '-')
+     *
+     * @return array $diffElement with processed nulls
+     */
+    public static function processDiffNulls(array $diffElement, $nullText = '-')
+    {
+        foreach ($diffElement as $diffKey => $diffValue) {
+            if (is_null($diffValue)) {
+                $diffElement[$diffKey] = $nullText;
+            }
+        }
+
+        return $diffElement;
+    }
+
+    /**
      * Calculates the attribute values, limitable by a condition.
      *
      * @param array                        $changes

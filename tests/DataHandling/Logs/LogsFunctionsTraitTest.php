@@ -8,6 +8,77 @@ use PHPUnit\Framework\TestCase;
 class LogsFunctionsTraitTest extends TestCase
 {
     /**
+     * Tests method for processing flags.
+     */
+    public function testProcessDiffFlags()
+    {
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => 'Yes'),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field1' => 'diff1', 'field2' => true),
+                array('field2')
+            )
+        );
+
+        $this->assertThisAttributes(
+            array('field2' => 'No'),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field2' => false),
+                array('field2')
+            )
+        );
+
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => 'Perfect'),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field1' => 'diff1', 'field2' => true),
+                array('field2'),
+                'Perfect',
+                'Bad'
+            )
+        );
+
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => 'Bad'),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field1' => 'diff1', 'field2' => false),
+                array('field2'),
+                'Perfect',
+                'Bad'
+            )
+        );
+
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => true),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field1' => 'diff1', 'field2' => true),
+                array('field3')
+            )
+        );
+    }
+
+    /**
+     * Tests method for processing nulls.
+     */
+    public function testProcessDiffNulls()
+    {
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => '-'),
+            LogsFunctionsTrait::processDiffNulls(
+                array('field1' => 'diff1', 'field2' => null)
+            )
+        );
+
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => 'No data'),
+            LogsFunctionsTrait::processDiffNulls(
+                array('field1' => 'diff1', 'field2' => null),
+                'No data'
+            )
+        );
+    }
+
+    /**
      * Tests testCalculateAttributesAt().
      */
     public function testCalculateAttributesAt()

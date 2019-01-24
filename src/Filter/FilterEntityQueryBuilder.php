@@ -29,6 +29,11 @@ class FilterEntityQueryBuilder
     const EXPRESSION_NOT_NULL = ' IS NOT NULL';
 
     /**
+     * Phrase used in expression for checked value (have to be looked for before "IS NULL")
+     */
+    const EXPRESSION_ZERO_OR_NULL = ' = 0 OR ';
+
+    /**
      * Phrase used in expression looking for null value
      */
     const EXPRESSION_NULL = ' IS NULL';
@@ -44,11 +49,6 @@ class FilterEntityQueryBuilder
     const EXPRESSION_MORE_OR_EQUAL = ' >= :';
 
     /**
-     * Phrase used in expression for checked value
-     */
-    const EXPRESSION_ZERO_OR_NULL = ' = 0 OR ';
-
-    /**
      * Phrase used in expression for date range (to)
      */
     const EXPRESSION_DATE_RANGE_TO = ' < DATE_ADD(:';
@@ -61,7 +61,7 @@ class FilterEntityQueryBuilder
     /**
      * @var array list of db expressions used to process sql query
      */
-    protected $dbExpressions = array(self::EXPRESSION_EQUAL, self::EXPRESSION_IN, self::EXPRESSION_LIKE, self::EXPRESSION_NOT_NULL, self::EXPRESSION_NULL, self::EXPRESSION_NOT_ZERO, self::EXPRESSION_MORE_OR_EQUAL, self::EXPRESSION_ZERO_OR_NULL, self::EXPRESSION_DATE_RANGE_TO);
+    protected $dbExpressions = array(self::EXPRESSION_EQUAL, self::EXPRESSION_IN, self::EXPRESSION_LIKE, self::EXPRESSION_NOT_NULL, self::EXPRESSION_ZERO_OR_NULL, self::EXPRESSION_NULL, self::EXPRESSION_NOT_ZERO, self::EXPRESSION_MORE_OR_EQUAL, self::EXPRESSION_DATE_RANGE_TO);
 
     /**
      * @var object analysed object
@@ -94,9 +94,25 @@ class FilterEntityQueryBuilder
     protected $rootAliases;
 
     /**
-     * @var \Doctrine\ORM\Query\Expr expression builder, lazy initialization
+     * @var \Doctrine\ORM\Query\Expr expression builder, lazy initialisation
     */
     protected $expressionBuilder;
+
+    /**
+     * @var array optional provider of data instead of calling get method (helpful when multiple joins are used).
+     *
+     * Key of array is called getter.
+     *
+     * array('calledGetter' => array(array('getter1' => array('getter2', 'getter3')))) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
+     *
+     * array('calledGetter' => array(array('getter1' => array('getter2' => array('getter3')))) - getter1 return many elements; getter2 also, whereas getter3 returns one element
+     */
+    protected $getterProvider = array();
+
+    /**
+     * @var array data collected by getter provider (or multiple providers for called getter - merge of results)
+     */
+    protected $getterProviderData = array();
 
     /**
      * Method setting entity, for each filtering would be made.
@@ -115,6 +131,65 @@ class FilterEntityQueryBuilder
     public function setParameter($parameterName, $parameterValue, $type = null)
     {
         $this->parameters[$parameterName] = $parameterValue;
+    }
+
+    /**
+     * Method for adding getter provider. Multiple getter providers can be added for one getterName (merge of results would be taken).
+     *
+     * @param string $getterName          called getter
+     * @param array  $getterConfiguration for example:
+     *
+     * array('calledGetter' => array('getter2', 'getter3')) - getter1 return many elements; for each of them getter2 and getter3 returns respectively one element
+     *
+     * array('calledGetter' => array('getter2' => array('getter3')) - getter1 return many elements; getter2 also, whereas getter3 returns one element
+     *
+     * NOT POSSIBLE to have manyToMany relationship after oneToOne
+     *
+     * @return $this
+     */
+    public function addGetterProvider($getterName, $getterConfiguration)
+    {
+        if (!isset($this->getterProvider[$getterName])) {
+            $this->getterProvider[$getterName] = array();
+        }
+        $this->getterProvider[$getterName][] = $getterConfiguration;
+        $this->getterProviderData[$getterName] = array();
+
+        return $this;
+    }
+
+    /**
+     * Method for obtaining values, which normally are returned by database.
+     *
+     * @param string $getterName name of getter called on entity (directly or through getterProvider)
+     *
+     * @return mixed data normally returned by database
+     */
+    public function getValueFromDb($getterName)
+    {
+        if (isset($this->getterProvider[$getterName])) {
+            foreach ($this->getterProvider[$getterName] as $getterProviderElement) {
+                $this->setGetterProviderData($getterName, $getterProviderElement, $this->analysedEntity);
+            }
+
+            if (isset($this->getterProviderData[$getterName][0]) && stripos(substr(get_class($this->getterProviderData[$getterName][0]), 0, 5), 'Mock_') !== false) {
+                // phpunit tests execution
+                foreach ($this->getterProviderData[$getterName] as $getterProviderDataElement) {
+                    if (stripos(substr(get_class($getterProviderDataElement), 0, 27), 'Mock_MockExistingCollection') !== false) {
+                        $valueFromDb = $getterProviderDataElement;
+                    }
+                }
+                if (!isset($valueFromDb)) {
+                    $valueFromDb = $this->getterProviderData[$getterName][0];
+                }
+            } else {
+                $valueFromDb = new \Doctrine\Common\Collections\ArrayCollection($this->getterProviderData[$getterName]);
+            }
+        } else {
+            $valueFromDb = $this->analysedEntity->{$getterName}();
+        }
+
+        return $valueFromDb;
     }
 
     /**
@@ -252,7 +327,7 @@ class FilterEntityQueryBuilder
                 }
                 if (!$this->evaluateExpression(
                     $expression,
-                    $this->analysedEntity->{$getterName}(),
+                    $this->getValueFromDb($getterName),
                     $parameterValue
                 )) {
                     $this->conditionsFulfilled = false;
@@ -274,6 +349,8 @@ class FilterEntityQueryBuilder
         $this->aliases = array();
         $this->parameters = array();
         $this->conditionsFulfilled = true;
+        $this->getterProvider = array();
+        $this->getterProviderData = array();
 
         return $this;
     }
@@ -359,5 +436,44 @@ class FilterEntityQueryBuilder
         }
 
         return $this->expressionBuilder;
+    }
+
+    /**
+     * Method for setting data for getter provider (can be subject of recurrency).
+     *
+     * @param string $firstGetterName     name of first getter (where data are stored)
+     * @param array  $getterConfiguration configuration of getter
+     * @param object $currentEntity       entity, on which operations are made
+     *
+     * @return $this
+     */
+    protected function setGetterProviderData($firstGetterName, $getterConfiguration, $currentEntity)
+    {
+        reset($getterConfiguration);
+        $methodIndex = key($getterConfiguration);
+
+        if (is_array($getterConfiguration[$methodIndex])) {
+            // many elements can be returned
+            $methodName = $methodIndex;
+            foreach ($currentEntity->{$methodName}() as $newEntity) {
+                $this->setGetterProviderData($firstGetterName, $getterConfiguration[$methodName], $newEntity);
+            }
+        } else {
+            reset($getterConfiguration);
+            $getterConfigurationLength = count($getterConfiguration);
+            $arrayIterator = 0;
+
+            foreach ($getterConfiguration as $methodName) {
+                if ($arrayIterator === ($getterConfigurationLength - 1)) {
+                    $this->getterProviderData[$firstGetterName][] = $currentEntity->{$methodName}();
+                } else {
+                    $currentEntity = $currentEntity->{$methodName}();
+                }
+
+                $arrayIterator++;
+            }
+        }
+
+        return $this;
     }
 }

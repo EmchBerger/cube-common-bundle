@@ -264,7 +264,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         if ($this->isActive($filterName) && !$this->isAnyOrNoneValue($filterName, $dbColName)) {
             $value = $this->filter[$filterName];
             $param = $filterName;
-            $this->qb->andWhere($dbColName.' LIKE :'.$param)->setParameter($param, $value);
+            $this->qb->andWhere($dbColName.' LIKE :'.$param.' OR '.$dbColName.' LIKE :'.$param.'_htmlentities')->setParameter($param, $value)->setParameter($param.'_htmlentities', htmlentities($value));
         }
 
         return $this;
@@ -277,7 +277,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
             $value = $this->filter[$filterName];
             $param = $filterName;
-            $this->qb->andWhere($dbColName.' LIKE :'.$param)->setParameter($param, '%'.$value.'%');
+            $this->qb->andWhere($dbColName.' LIKE :'.$param.' OR '.$dbColName.' LIKE :'.$param.'_htmlentities')->setParameter($param, '%'.$value.'%')->setParameter($param.'_htmlentities', '%'.htmlentities($value).'%');
         }
 
         return $this;
