@@ -47,6 +47,14 @@ class LogsFunctionsTraitTest extends TestCase
                 'Bad'
             )
         );
+
+        $this->assertThisAttributes(
+            array('field1' => 'diff1', 'field2' => true),
+            LogsFunctionsTrait::processDiffFlags(
+                array('field1' => 'diff1', 'field2' => true),
+                array('field3')
+            )
+        );
     }
 
     /**
