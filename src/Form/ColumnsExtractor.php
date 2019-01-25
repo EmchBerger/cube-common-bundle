@@ -86,7 +86,7 @@ class ColumnsExtractor
                 $this->validateColumn($formElement)
             ) {
                 if ($nameAsKey) {
-                    $columns[$this->getColumnName($formElement)] = empty($this->getColumnLabel($formElement)) ? $this->getColumnName($formElement) : $this->getColumnLabel($formElement);
+                    $columns[$this->getColumnName($formElement)] = empty($this->getColumnLabel($formElement)) ? ucfirst($this->getColumnName($formElement)) : $this->getColumnLabel($formElement);
                 } else {
                     $columns[] = $this->getColumnLabel($formElement);
                 }
