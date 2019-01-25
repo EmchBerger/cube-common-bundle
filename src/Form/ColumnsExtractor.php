@@ -70,11 +70,12 @@ class ColumnsExtractor
     /**
      * Method for getting array with label of columns.
      *
-     * @param FormInterface|FormBuilderInterface $form form object, from which elements would be taken
+     * @param FormInterface|FormBuilderInterface $form      form object, from which elements would be taken
+     * @param bool                               $nameAsKey if true, output array keys are column names (default false)
      *
-     * @return array string[] labels for columns
+     * @return array string[] labels for columns (if $nameAsKey is true, column names are keys)
      */
-    public function getColumns($form)
+    public function getColumns($form, $nameAsKey = false)
     {
         $columns = array();
 
@@ -84,7 +85,11 @@ class ColumnsExtractor
                 !(isset($elementOptions['attr']['data-isindexcolumn']) && !$elementOptions['attr']['data-isindexcolumn']) &&
                 $this->validateColumn($formElement)
             ) {
-                $columns[] = $this->getColumnLabel($formElement);
+                if ($nameAsKey) {
+                    $columns[$this->getColumnName($formElement)] = empty($this->getColumnLabel($formElement)) ? $this->getColumnName($formElement) : $this->getColumnLabel($formElement);
+                } else {
+                    $columns[] = $this->getColumnLabel($formElement);
+                }
             }
         }
 
