@@ -7,6 +7,7 @@ use DataDog\AuditBundle\Entity\AuditLog;
 use DataDog\AuditBundle\Entity\Association;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class handling data from DataDogAuditBundle.
@@ -43,9 +44,15 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $auditQueries;
 
-    public function __construct(ObjectManager $em)
+    /**
+     * @var \Symfony\Component\Translation\TranslatorInterface
+     */
+    protected $translator;
+
+    public function __construct(ObjectManager $em, TranslatorInterface $translator)
     {
         $this->em = $em;
+        $this->translator = $translator;
         $this->auditQueries = new DataDogAudit\AuditQueries($em);
     }
 
