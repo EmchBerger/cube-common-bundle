@@ -76,7 +76,8 @@ class ExcelConverterTest extends TestCase
 
     private function getService()
     {
-        $es = new ExcelConverter(new ExcelFactory());
+        $es = new ExcelConverter();
+        $es->setExcelService(new ExcelFactory());
 
         return $es;
     }
