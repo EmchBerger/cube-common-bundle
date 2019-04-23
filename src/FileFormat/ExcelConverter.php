@@ -29,11 +29,11 @@ class ExcelConverter
      */
     public function getExcelService()
     {
-        if (isset($this->excelSrvc)) {
-            return $this->excelSrvc;
-        } else {
-            trigger_error('Due to deprecation of PHPExcel, setExcelService method of \CubeTools\CubeCommonBundle\FileFormat\ExcelConverter class have to be additionally used.', E_USER_ERROR);
+        if (!isset($this->excelSrvc)) {
+            $this->excelSrvc = new \Liuggio\ExcelBundle\Factory();
         }
+
+        return $this->excelSrvc;
     }
 
     /**
