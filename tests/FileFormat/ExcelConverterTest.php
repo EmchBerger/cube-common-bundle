@@ -3,7 +3,6 @@
 namespace Tests\CubeTools\CubeCommonBundle\FileFormat;
 
 use CubeTools\CubeCommonBundle\FileFormat\ExcelConverter;
-use Liuggio\ExcelBundle\Factory as ExcelFactory;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use PHPUnit\Framework\TestCase;
@@ -76,7 +75,7 @@ class ExcelConverterTest extends TestCase
 
     private function getService()
     {
-        $es = new ExcelConverter(new ExcelFactory());
+        $es = new ExcelConverter();
 
         return $es;
     }
