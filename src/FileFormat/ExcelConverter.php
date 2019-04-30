@@ -16,11 +16,24 @@ class ExcelConverter
     /**
      * Create service.
      *
-     * @param Luiggio\ExcelBundle\Factory $excelService
+     * @param \Luiggio\ExcelBundle\Factory $excelService
      */
-    public function __construct($excelService)
+    public function setExcelService($excelService)
     {
         $this->excelSrvc = $excelService;
+    }
+
+    /**
+     *
+     * @return \Luiggio\ExcelBundle\Factory
+     */
+    public function getExcelService()
+    {
+        if (!isset($this->excelSrvc)) {
+            $this->excelSrvc = new \Liuggio\ExcelBundle\Factory();
+        }
+
+        return $this->excelSrvc;
     }
 
     /**
@@ -81,7 +94,7 @@ class ExcelConverter
 
         $tmpFile = $this->getTempHtmlFile($htmlStr); // as temporary file because it must have a filename
 
-        return $this->excelSrvc->createPHPExcelObject($tmpFile['path']);
+        return $this->getExcelService()->createPHPExcelObject($tmpFile['path']);
         // tmpfile is deleted automatically
     }
 
@@ -97,7 +110,7 @@ class ExcelConverter
      */
     public function createResponse(\PHPExcel $xlObj, $filename, $format, $contentType)
     {
-        return self::createExcelResponse($this->excelSrvc, $xlObj, $filename, $format, $contentType);
+        return self::createExcelResponse($this->getExcelService(), $xlObj, $filename, $format, $contentType);
     }
 
     /**
