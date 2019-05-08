@@ -67,7 +67,7 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function getAllVersionsQb($entity)
     {
-        $class = get_class($entity);
+        $class = $this->em->getMetadataFactory()->getMetadataFor(get_class($entity))->getName();
         $id = $entity;
 
         $this->instanceCache = array(
@@ -81,7 +81,10 @@ class DataDogAudit extends AbstractBaseAudit
 
         $assocClasses = array();
         foreach ($aQb->getQuery()->getResult() as $infos) {
-            $assocClasses[$infos['class']][] = $infos['fk'];
+            if ($infos['class'] !== $class) {
+                // avoid showing changes for parents
+                $assocClasses[$infos['class']][] = $infos['fk'];
+            }
         }
 
         $qb = $this->auditQueries->createAuditLogQb($id, $class);
@@ -557,7 +560,7 @@ class DataDogAudit extends AbstractBaseAudit
     protected function getInverseSideAttributeIds($entity, $attribute, $additionalConditions = array())
     {
         $entId = $entity->getId();
-        $entClass = get_class($entity);
+        $entClass = $this->em->getMetadataFactory()->getMetadataFor(get_class($entity))->getName();
 
         $entMeta = $this->em->getClassMetadata($entClass);
         if (isset($entMeta->getAssociationMapping($attribute)['joinTable'])) {
