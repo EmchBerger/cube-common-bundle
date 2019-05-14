@@ -138,8 +138,10 @@ class CollectionHandler
     {
         if ($rawElement) {
             $columnOutputValue = $this->rawElementProcessor->{$this->rawElementProcessorMethodName}((string) $columnValue);
-        } else {
+        } else if (is_scalar($columnValue) || (is_object($columnValue) && method_exists($columnValue, '__toString'))) {
             $columnOutputValue = (string) $columnValue;
+        } else {
+            $columnOutputValue = $columnValue;
         }
 
         return $columnOutputValue;
