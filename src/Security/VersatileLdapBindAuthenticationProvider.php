@@ -19,13 +19,20 @@ use Symfony\Component\Ldap\Exception\ConnectionException;
  */
 class VersatileLdapBindAuthenticationProvider extends LdapBindAuthenticationProvider
 {
-    public function __construct(UserProviderInterface $userProvider, UserCheckerInterface $userChecker, $providerKey, LdapInterface $ldap, $dnString = '{username}', $hideUserNotFoundExceptions = true)
+    const DEFAULT_DN_STRING = '{username}';
+
+    public function __construct(UserProviderInterface $userProvider, UserCheckerInterface $userChecker, $providerKey, LdapInterface $ldap, $dnString = self::DEFAULT_DN_STRING, $hideUserNotFoundExceptions = true)
     {
         try {
             // ldap must be bound to allow anonymous search queries
             $ldap->bind();
         } catch (ConnectionException $e) {
             // hide exception
+        }
+
+        if (is_null($dnString)) {
+            // null value causes Symfony exception
+            $dnString = self::DEFAULT_DN_STRING;
         }
 
         parent::__construct($userProvider, $userChecker, $providerKey, $ldap, $dnString, $hideUserNotFoundExceptions);
