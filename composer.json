@@ -15,6 +15,7 @@
         "friendsofsymfony/user-bundle": "2.0.*|2.1.*",
         "liuggio/excelbundle": "~2.0",
         "symfony/config": "^2.7|^3.0|^4.0"
+        "symfony/ldap": "^3.0|^4.0"
     },
     "require-dev": {
         "cubetools/cube-common-develop": "dev-development@dev",
