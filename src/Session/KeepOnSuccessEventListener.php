@@ -32,8 +32,11 @@ class KeepOnSuccessEventListener implements EventSubscriberInterface
             $session = $event->getRequest()->getSession();
             $session->remove(KeepOnSuccess::STORAGE_KEY);
         } elseif (!$response->isRedirection() && !$response->isInformational()) {
-            // failed, remove keys
             $session = $event->getRequest()->getSession();
+            if (null === $session) {
+                return;
+            }
+            // failed, remove keys
             foreach (array_keys($session->get(KeepOnSuccess::STORAGE_KEY, array())) as $key) {
                 $session->remove($key);
             }
