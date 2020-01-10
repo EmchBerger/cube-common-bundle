@@ -23,7 +23,7 @@ class ExcelConverterTest extends TestCase
     {
         $h2e = $this->getService();
         $data = new self();
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $h2e->fromHtml($data);
     }
 
