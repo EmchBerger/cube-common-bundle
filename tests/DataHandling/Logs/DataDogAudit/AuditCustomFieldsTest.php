@@ -15,9 +15,9 @@ class AuditCustomFieldsTest extends TestCase
         $cfSrv->setCustomFieldLabelPrefix('1 jie ä');
         $cfSrv->setCustomFieldLabelPrefix(7);
 
-        $phpError = \PHPUnit\Framework\Error::class;
+        $phpError = \PHPUnit\Framework\Error\Error::class;
         if (!class_exists($phpError)) {
-            $phpError = str_replace('\\', '_', $phpError);
+            $phpError = 'PHPUnit_Framework_Error';
         }
         $this->expectException($phpError);
         $cfSrv->setCustomFieldLabelPrefix(array());
