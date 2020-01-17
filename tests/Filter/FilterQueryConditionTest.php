@@ -62,7 +62,7 @@ class FilterQueryConditionTest extends TestCase
         $noWhereCalls = 9;
         $mQb = $this->getMockedQueryBuilder(array('andWhere', 'setParameter'));
         $mQb->expects($this->exactly($noWhereCalls))->method('andWhere')->will($this->returnSelf());
-        $mQb->expects($this->exactly($noWhereCalls - 3 + 2))->method('setParameter');
+        $mQb->expects($this->exactly($noWhereCalls - 3 + 3))->method('setParameter')->will($this->returnSelf());
 
         $filter = new FilterQueryCondition(array(
             'f' => 'sae',
@@ -74,7 +74,7 @@ class FilterQueryConditionTest extends TestCase
         $filter->setQuerybuilder($mQb);
 
         $filter->andWhereEqual('dbTable', 'f');
-        $filter->andWhereLike('table', 'f', 'dbColmn');
+        $filter->andWhereLike('table', 'f', 'dbColmn'); // 2 calls on setParameters (2 variants)
         $filter->andWhereIn('dbTbl', 'f');
         $filter->andWhereIsSetIsNotSet('dbT', 'i'); // 0 calls on setParameter
         $filter->andWhereIsSetIsNotSet('dbT', 'j', 'dbC'); // 0 calls on setParameter
