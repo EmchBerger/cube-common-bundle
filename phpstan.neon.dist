@@ -7,6 +7,9 @@ parameters:
     paths:
       - src/
       - tests/
+    autoload_files:
+      - vendor/cubetools/cube-common-develop/src/CodeStyle/PhpStanDummy/LoadFallbackClasses.php
+
     ignoreErrors:
         # because of classes very likely not loaded in bundle
         - '# Buzz\\Browser#'
