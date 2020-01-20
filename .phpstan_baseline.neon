@@ -1,0 +1,87 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Parameter \\$translator of method CubeTools\\\\CubeCommonBundle\\\\DataHandling\\\\Logs\\\\DataDogAudit\\:\\:__construct\\(\\) has invalid typehint type Symfony\\\\Component\\\\Translation\\\\TranslatorInterface\\.$#"
+			count: 1
+			path: src/DataHandling/Logs/DataDogAudit.php
+
+		-
+			message: "#^Parameter \\$paginator of method CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterData\\:\\:__construct\\(\\) has invalid typehint type Knp\\\\Component\\\\Pager\\\\PaginatorInterface\\.$#"
+			count: 1
+			path: src/Filter/FilterData.php
+
+		-
+			message: "#^Instantiated class Doctrine\\\\Common\\\\Collections\\\\ArrayCollection not found\\.$#"
+			count: 1
+			path: src/Filter/FilterEntityQueryBuilder.php
+
+		-
+			message: "#^Call to static method getClass\\(\\) on an unknown class Doctrine\\\\Common\\\\Util\\\\ClassUtils\\.$#"
+			count: 1
+			path: src/Filter/FilterEntityQueryBuilder.php
+
+		-
+			message: "#^Instantiated class Doctrine\\\\ORM\\\\Query\\\\Expr not found\\.$#"
+			count: 1
+			path: src/Filter/FilterEntityQueryBuilder.php
+
+		-
+			message: "#^Class Doctrine\\\\Common\\\\Collections\\\\ArrayCollection not found\\.$#"
+			count: 2
+			path: src/Filter/FilterQueryCondition.php
+
+		-
+			message: "#^Parameter \\$paginator of method CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterService\\:\\:setPaginator\\(\\) has invalid typehint type Knp\\\\Component\\\\Pager\\\\PaginatorInterface\\.$#"
+			count: 1
+			path: src/Filter/FilterService.php
+
+		-
+			message: "#^Parameter \\$swiftMailer of method CubeTools\\\\CubeCommonBundle\\\\Subscriptions\\\\MailSubscription\\:\\:__construct\\(\\) has invalid typehint type Swift_Mailer\\.$#"
+			count: 1
+			path: src/Subscriptions/MailSubscription.php
+
+		-
+			message: "#^Instantiated class Swift_Message not found\\.$#"
+			count: 2
+			path: src/Subscriptions/MailSubscription.php
+
+		-
+			message: "#^Parameter \\$translator of method CubeTools\\\\CubeCommonBundle\\\\Subscriptions\\\\Message\\\\ContentGenerator\\:\\:__construct\\(\\) has invalid typehint type Symfony\\\\Component\\\\Translation\\\\TranslatorInterface\\.$#"
+			count: 1
+			path: src/Subscriptions/Message/ContentGenerator.php
+
+		-
+			message: "#^Call to static method fromPath\\(\\) on an unknown class Swift_Attachment\\.$#"
+			count: 1
+			path: src/Subscriptions/Message/ContentGenerator.php
+
+		-
+			message: "#^Parameter \\$doctrine of method CubeTools\\\\CubeCommonBundle\\\\UserSettings\\\\UserSettingsStorage\\:\\:__construct\\(\\) has invalid typehint type Symfony\\\\Bridge\\\\Doctrine\\\\ManagerRegistry\\.$#"
+			count: 1
+			path: src/UserSettings/UserSettingsStorage.php
+
+		-
+			message: "#^Class PHPUnit\\\\Framework\\\\Error\\\\Error not found\\.$#"
+			count: 1
+			path: tests/DataHandling/Logs/DataDogAudit/AuditCustomFieldsTest.php
+
+		-
+			message: "#^Call to an undefined method Tests\\\\CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterEntityQueryBuilderTest\\:\\:returnValue\\(\\)\\.$#"
+			count: 15
+			path: tests/Filter/FilterEntityQueryBuilderTest.php
+
+		-
+			message: "#^Call to an undefined method Tests\\\\CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterQueryConditionTest\\:\\:returnSelf\\(\\)\\.$#"
+			count: 3
+			path: tests/Filter/FilterQueryConditionTest.php
+
+		-
+			message: "#^Call to an undefined method Tests\\\\CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterSessionHelperTest\\:\\:equalTo\\(\\)\\.$#"
+			count: 1
+			path: tests/Filter/FilterSessionHelperTest.php
+
+		-
+			message: "#^Call to an undefined method Tests\\\\CubeTools\\\\CubeCommonBundle\\\\Filter\\\\FilterSessionHelperTest\\:\\:contains\\(\\)\\.$#"
+			count: 1
+			path: tests/Filter/FilterSessionHelperTest.php
+
