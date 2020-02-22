@@ -18,9 +18,9 @@ class PdfStatisticsTest extends TestCase
         $this->testObject = new PdfStatistics();
     }
 
-    public function testGetFilename()
+    public function testSetFilename()
     {
-        $this->assertTrue($this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf'));
+        $this->setFilenameSuccessful('oneA4grayscale.pdf');
         $this->assertFalse($this->testObject->setFilename($this->folderWithPdfsForTests . 'wrongContent.jpg'));
         $this->assertFalse($this->testObject->setFilename($this->folderWithPdfsForTests . 'fileNotExists.pdf'));
         $this->assertFalse($this->testObject->setFilename(__FILE__)); // file extension is not handled
@@ -28,28 +28,33 @@ class PdfStatisticsTest extends TestCase
 
     public function testGetFormatOfPages()
     {
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf');
+        $this->setFilenameSuccessful('oneA4grayscale.pdf');
         $this->assertEquals(array('A4'), $this->testObject->getFormatOfPages());
 
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'twoA4firstGrayscaleSecondColor.pdf');
+        $this->setFilenameSuccessful('twoA4firstGrayscaleSecondColor.pdf');
         $this->assertEquals(array('A4', 'A4'), $this->testObject->getFormatOfPages());
     }
 
     public function testGetPagesInColor()
     {
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf');
+        $this->setFilenameSuccessful('oneA4grayscale.pdf');
         $this->assertEquals(0, count($this->testObject->getPagesInColor()));
 
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'twoA4firstGrayscaleSecondColor.pdf');
+        $this->setFilenameSuccessful('twoA4firstGrayscaleSecondColor.pdf');
         $this->assertEquals(array(1), $this->testObject->getPagesInColor());
     }
 
     public function testGetNumberOfPages()
     {
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'oneA4grayscale.pdf');
+        $this->setFilenameSuccessful('oneA4grayscale.pdf');
         $this->assertEquals(1, $this->testObject->getNumberOfPages(), 'Wrong number of pages calculated.');
 
-        $this->testObject->setFilename($this->folderWithPdfsForTests . 'twoA4firstGrayscaleSecondColor.pdf');
+        $this->setFilenameSuccessful('twoA4firstGrayscaleSecondColor.pdf');
         $this->assertEquals(2, $this->testObject->getNumberOfPages(), 'Wrong number of pages calculated.');
+    }
+
+    private function setFilenameSuccessful($fileName)
+    {
+        $this->assertTrue($this->testObject->setFilename($this->folderWithPdfsForTests.$fileName), 'set filename: '.$fileName);
     }
 }
