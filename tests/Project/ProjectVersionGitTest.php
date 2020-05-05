@@ -67,7 +67,7 @@ class ProjectVersionGitTest extends \PHPUnit\Framework\TestCase
         if (!getenv('TESTS_NO_CLEANUP')) {
             exec("rm -r '".static::$tmpDir."'");
         } else {
-            echo ' ** cleanup skipped, delete manually '.static::$tmpdir;
+            echo ' ** cleanup skipped, delete manually '.static::$tmpDir;
         }
     }
 }

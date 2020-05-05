@@ -49,7 +49,7 @@ class FilterSessionHelperTest extends FormIntegrationTestCase // this class has 
         FilterSessionHelper::setFilterDataToSession($mSess, $pageName, $filter, array($this, 'invalid_cbk'));
         $this->assertTrue(true, 'callback not called on same data');
 
-        $mockCbk = $this->getMockBuilder(stdClass::class)->setMethods(array('cbk'))->getMock();
+        $mockCbk = $this->getMockBuilder(\stdClass::class)->setMethods(array('cbk'))->getMock();
         $mockCbk->expects($this->once())->method('cbk')->with(
             $this->equalTo($mSess),
             $this->contains($pageName.'_filter')
