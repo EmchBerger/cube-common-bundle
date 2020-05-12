@@ -47,10 +47,8 @@ services:
     CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener: '@cube_common.session_keep_on_success'
     cube_common.excel.converter:
         class: CubeTools\CubeCommonBundle\FileFormat\ExcelConverter
+        autowire: true
     CubeTools\CubeCommonBundle\FileFormat\ExcelConverter: '@cube_common.excel.converter'
-    cube_common.excel.reader:
-        class: CubeTools\CubeCommonBundle\FileFormat\ExcelReader
-    CubeTools\CubeCommonBundle\FileFormat\ExcelReader: '@cube_common.excel.reader'
     CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit:
         class: CubeTools\CubeCommonBundle\DataHandling\Logs\DataDogAudit
         arguments:

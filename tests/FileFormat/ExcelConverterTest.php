@@ -16,14 +16,16 @@ class ExcelConverterTest extends TestCase
     {
         $h2e = $this->getService();
         $xlo = $h2e->fromHtml($data);
-        $this->assertInstanceOf('\PHPExcel', $xlo);
+        $this->assertInstanceOf('\PhpOffice\PhpSpreadsheet\Spreadsheet', $xlo);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testInvalidArg()
     {
         $h2e = $this->getService();
         $data = new self();
-        $this->expectException(\InvalidArgumentException::class);
         $h2e->fromHtml($data);
     }
 
@@ -43,7 +45,7 @@ class ExcelConverterTest extends TestCase
             // CssSelector not installed, but enough code checked
             return;
         }
-        $this->assertInstanceOf('\PHPExcel', $xlo);
+        $this->assertInstanceOf('\PhpOffice\PhpSpreadsheet\Spreadsheet', $xlo);
     }
 
     /**
@@ -52,7 +54,7 @@ class ExcelConverterTest extends TestCase
     public function testCreateResponse()
     {
         $fileName = 'anyName.xlsx';
-        $format = 'Excel2007';
+        $format = 'Xlsx';
         $contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
         $h2e = $this->getService();
