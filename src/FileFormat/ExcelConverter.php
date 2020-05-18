@@ -79,10 +79,10 @@ class ExcelConverter
     /**
      * Create response with excel download.
      *
-     * @param PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet Excel object to create the download from
-     * @param string                               $filename    filename to give to the download
-     * @param string                               $format      format of write (like Excel2007)
-     * @param string                               $contentType mime content type
+     * @param Spreadsheet $spreadsheet Excel object to create the download from
+     * @param string      $filename    filename to give to the download
+     * @param string      $format      format of write (like Xlsx)
+     * @param string      $contentType mime content type
      *
      * @return \Symfony\Component\HtmlFoundation\Response
      */
@@ -94,10 +94,10 @@ class ExcelConverter
     /**
      * Create response with excel download.
      *
-     * @param PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet Excel object to create the download from
-     * @param string                               $filename    filename to give to the download
-     * @param string                               $writerType  format of write (like Excel2007)
-     * @param string                               $contentType mime content type
+     * @param Spreadsheet $spreadsheet Excel object to create the download from
+     * @param string      $filename    filename to give to the download
+     * @param string      $writerType  format of write (like Xlsx)
+     * @param string      $contentType mime content type
      *
      * @return \Symfony\Component\HtmlFoundation\Response
      */
