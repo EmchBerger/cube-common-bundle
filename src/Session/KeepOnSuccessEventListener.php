@@ -31,12 +31,11 @@ class KeepOnSuccessEventListener implements EventSubscriberInterface
             // fine, remove delete instruction
             $session = $event->getRequest()->getSession();
             $session->remove(KeepOnSuccess::STORAGE_KEY);
-        } elseif (!$response->isRedirection() && !$response->isInformational()) {
-            $session = $event->getRequest()->getSession();
-            if (null === $session) {
-                return;
-            }
+        } elseif (!$response->isRedirection() && !$response->isInformational() &&
+            $event->getRequest()->hasSession()
+        ) {
             // failed, remove keys
+            $session = $event->getRequest()->getSession();
             foreach (array_keys($session->get(KeepOnSuccess::STORAGE_KEY, array())) as $key) {
                 $session->remove($key);
             }
