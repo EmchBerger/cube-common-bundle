@@ -1,36 +1,4 @@
-includes:
-    - vendor/phpstan/phpstan/conf/config.level0.neon
+# old file
 
-parameters:
-    ignoreErrors:
-        # because of classes very likely not loaded in bundle
-        - '# Buzz\\Browser#'
-        - '# Buzz\\Client\\BatchClientInterface#'
-        - '# Buzz\\Client\\MultiCurl#'
-        - '# Buzz\\Exception\\RequestException#'
-        - '# DataDog\\AuditBundle\\Entity\\Association#'
-        - '# DataDog\\AuditBundle\\Entity\\AuditLog#'
-        - '# Doctrine\\Common\\Collections\\ArrayCollection#'
-        - '# Doctrine\\Common\\Persistence\\ObjectManager#'
-        - '# Doctrine\\ORM\\EntityManager#'
-        - '# Doctrine\\ORM\\EntityRepository#'
-        - '# Doctrine\\ORM\\Mapping\\ClassMetadata#'
-        - '# Doctrine\\ORM\\QueryBuilder#'
-        - '# Knp\\Component\\Pager\\Pagination\\PaginationInterface#'
-        - '# Knp\\Component\\Pager\\PaginatorInterface#'
-        - '# Luiggio\\ExcelBundle\\Factory#'
-        - '# Swift_Attachment#'
-        - '# Swift_Mailer#'
-        - '# Swift_Message#'
-        - '# Symfony\\Bridge\\Doctrine\\ManagerRegistry#'
-        - '# Symfony\\Component\\HtmlFoundation\\Response#'
-        - '# Symfony\\Component\\HttpKernel\\Event\\FilterResponseEvent#'
-        - '# Symfony\\Component\\HttpKernel\\Exception\\BadRequestHttpException#'
-        - '# Symfony\\Component\\HttpKernel\\KernelEvents#'
-        - '# Symfony\\Component\\Routing\\Generator\\UrlGeneratorInterface#'
-        - '# Symfony\\Component\\Security\\Core\\Authentication\\Token\\Storage\\TokenStorageInterface#'
-        - '# Symfony\\Component\\Security\\Core\\User\\UserInterface#'
-        - '# Symfony\\Component\\Templating\\EngineInterface#'
-        - '# Symfony\\Component\\Translation\\TranslatorInterface#'
-        - '# PHPExcel#'
-        - '# PHPExcel_Worksheet#'
+includes:
+ - phpstan.neon.dist
