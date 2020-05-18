@@ -109,8 +109,7 @@ class ExcelConverter
             function () use ($writer) {
                 $writer->save('php://output');
             },
-            200,
-            []
+            200
         );
 
         $headers = $response->headers;
@@ -144,6 +143,6 @@ class ExcelConverter
         fwrite($tf, $html);
 
         // return reference as well, because file is deleted when reference is closed
-        return array('path' => $tfPath, 'ref' => $tf);
+        return ['path' => $tfPath, 'ref' => $tf];
     }
 }

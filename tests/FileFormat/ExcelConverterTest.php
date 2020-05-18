@@ -4,9 +4,9 @@ namespace Tests\CubeTools\CubeCommonBundle\FileFormat;
 
 use CubeTools\CubeCommonBundle\FileFormat\ExcelConverter;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
-use PHPUnit\Framework\TestCase;
 
 class ExcelConverterTest extends TestCase
 {
@@ -67,11 +67,11 @@ class ExcelConverterTest extends TestCase
         $c = new Crawler();
         $c->addHtmlContent('<p>a</p><div id="tst">3</div><span>q</span>');
 
-        return array(
-            array('string' => '<table><tr><td>1</td><td>x</td></tr><tr id="tst"><td>2</td></tr></table>'),
-            array('node' => $c->getNode(0)),
-            array('Crawler' => $c),
-        );
+        return [
+            ['string' => '<table><tr><td>1</td><td>x</td></tr><tr id="tst"><td>2</td></tr></table>'],
+            ['node' => $c->getNode(0)],
+            ['Crawler' => $c],
+        ];
     }
 
     private function getService()
