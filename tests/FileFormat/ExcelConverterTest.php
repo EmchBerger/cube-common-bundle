@@ -19,13 +19,11 @@ class ExcelConverterTest extends TestCase
         $this->assertInstanceOf('\PhpOffice\PhpSpreadsheet\Spreadsheet', $xlo);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidArg()
     {
         $h2e = $this->getService();
         $data = new self();
+        $this->expectException(\InvalidArgumentException::class);
         $h2e->fromHtml($data);
     }
 
