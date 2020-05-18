@@ -3,6 +3,7 @@
 namespace Tests\CubeTools\CubeCommonBundle\FileFormat;
 
 use CubeTools\CubeCommonBundle\FileFormat\ExcelConverter;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,7 @@ class ExcelConverterTest extends TestCase
     {
         $h2e = $this->getService();
         $xlo = $h2e->fromHtml($data);
-        $this->assertInstanceOf('\PhpOffice\PhpSpreadsheet\Spreadsheet', $xlo);
+        $this->assertInstanceOf(Spreadsheet::class, $xlo);
     }
 
     public function testInvalidArg()
@@ -43,7 +44,7 @@ class ExcelConverterTest extends TestCase
             // CssSelector not installed, but enough code checked
             return;
         }
-        $this->assertInstanceOf('\PhpOffice\PhpSpreadsheet\Spreadsheet', $xlo);
+        $this->assertInstanceOf(Spreadsheet::class, $xlo);
     }
 
     /**
