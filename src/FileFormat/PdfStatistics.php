@@ -135,6 +135,9 @@ class PdfStatistics implements FileStatisticsInterface
             $imageReadResult = $this->imagickDocument->readImage($filename);
             $this->imagickDocument->setImageUnits(\Imagick::RESOLUTION_PIXELSPERINCH);
         } catch (\ImagickException $ex) {
+            if (false !== strpos($ex->getMessage(), 'not authorized')) {
+                throw $ex;
+            }
             $imageReadResult = false;
         }
 

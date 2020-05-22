@@ -3,8 +3,9 @@
 namespace Tests\CubeTools\CubeCommonBundle\Subscriptions\Conditions;
 
 use CubeTools\CubeCommonBundle\Subscriptions\Conditions\Notifications;
+use PHPUnit\Framework\TestCase;
 
-class NotificationsTest extends \PHPUnit_Framework_TestCase
+class NotificationsTest extends TestCase
 {
     /**
      * Tests for static method prepareFilterFormData.

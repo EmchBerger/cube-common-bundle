@@ -1,0 +1,33 @@
+# default config for phpstan
+#
+# more infos: vendor/bin/phpstan analyze --help
+
+parameters:
+    level: 0 # to higher number when all is fixed
+    paths:
+      - src/
+      - tests/
+    autoload_files:
+      - vendor/cubetools/cube-common-develop/src/CodeStyle/PhpStanDummy/LoadFallbackClasses.php
+
+    ignoreErrors:
+        # because of classes very likely not loaded in bundle
+        - message: '#invalid typehint type DataDog\\AuditBundle\\Entity\\Association.$#'
+          path: src/DataHandling/Logs/*
+        - message: '#invalid typehint type DataDog\\AuditBundle\\Entity\\AuditLog.$#'
+          path: src/DataHandling/Logs/*
+        - message: '#Class DataDog\\AuditBundle\\Entity\\AuditLog not found#'
+          path: src/DataHandling/Logs/*
+        - message: '#invalid typehint type Doctrine\\Common\\Persistence\\ObjectManager.$#'
+          path: src/*
+        - message: '#invalid typehint type Doctrine\\ORM\\EntityManagerInterface.$#'
+          path: src/*
+        - message: '#Class Doctrine\\ORM\\QueryBuilder not found#'
+          path: src/*
+        - message: '#invalid typehint type Doctrine\\ORM\\QueryBuilder.$#'
+          path: src/*
+        - message: '# Symfony\\Component\\HtmlFoundation\\Response#'
+          path: src/*
+
+includes:
+    - .phpstan_baseline.neon # created with: make make-phpstan-baseline

@@ -2,40 +2,18 @@
 
 namespace CubeTools\CubeCommonBundle\FileFormat;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Helper for exporting html to excel file.
  */
 class ExcelConverter
 {
-    private $excelSrvc;
-
-    /**
-     * Create service.
-     *
-     * @param \Luiggio\ExcelBundle\Factory $excelService
-     */
-    public function setExcelService($excelService)
-    {
-        $this->excelSrvc = $excelService;
-    }
-
-    /**
-     *
-     * @return \Luiggio\ExcelBundle\Factory
-     */
-    public function getExcelService()
-    {
-        if (!isset($this->excelSrvc)) {
-            $this->excelSrvc = new \Liuggio\ExcelBundle\Factory();
-        }
-
-        return $this->excelSrvc;
-    }
-
     /**
      * Convert html to excel file.
      *
@@ -94,40 +72,46 @@ class ExcelConverter
 
         $tmpFile = $this->getTempHtmlFile($htmlStr); // as temporary file because it must have a filename
 
-        return $this->getExcelService()->createPHPExcelObject($tmpFile['path']);
+        return IOFactory::load($tmpFile['path']);
         // tmpfile is deleted automatically
     }
 
     /**
      * Create response with excel download.
      *
-     * @param \PHPExcel $xlObj       Excel object to create the download from
-     * @param string    $filename    filename to give to the download
-     * @param string    $format      format of write (like Excel2007)
-     * @param string    $contentType mime content type
+     * @param Spreadsheet $spreadsheet Excel object to create the download from
+     * @param string      $filename    filename to give to the download
+     * @param string      $format      format of write (like Xlsx)
+     * @param string      $contentType mime content type
      *
      * @return \Symfony\Component\HtmlFoundation\Response
      */
-    public function createResponse(\PHPExcel $xlObj, $filename, $format, $contentType)
+    public function createResponse(Spreadsheet $spreadsheet, $filename, $format, $contentType)
     {
-        return self::createExcelResponse($this->getExcelService(), $xlObj, $filename, $format, $contentType);
+        return self::createExcelResponse($spreadsheet, $filename, $format, $contentType);
     }
 
     /**
      * Create response with excel download.
      *
-     * @param Luiggio\ExcelBundle\Factory $excelSrvc
-     * @param \PHPExcel                   $xlObj       Excel object to create the download from
-     * @param string                      $filename    filename to give to the download
-     * @param string                      $format      format of write (like Excel2007)
-     * @param string                      $contentType mime content type
+     * @param Spreadsheet $spreadsheet Excel object to create the download from
+     * @param string      $filename    filename to give to the download
+     * @param string      $writerType  format of write (like Xlsx)
+     * @param string      $contentType mime content type
      *
      * @return \Symfony\Component\HtmlFoundation\Response
      */
-    public static function createExcelResponse($excelSrvc, \PHPExcel $xlObj, $filename, $format, $contentType)
+    public static function createExcelResponse(Spreadsheet $spreadsheet, $filename, $writerType, $contentType)
     {
-        $xlWr = $excelSrvc->createWriter($xlObj, $format);
-        $response = $excelSrvc->createStreamedResponse($xlWr);
+        $writer = IOFactory::createWriter($spreadsheet, $writerType);
+
+        $response = new StreamedResponse(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200
+        );
+
         $headers = $response->headers;
         $headers->set('Content-Type', $contentType.'; charset=utf-8');
         $headers->set('Content-Disposition', $headers->makeDisposition(
@@ -159,6 +143,6 @@ class ExcelConverter
         fwrite($tf, $html);
 
         // return reference as well, because file is deleted when reference is closed
-        return array('path' => $tfPath, 'ref' => $tf);
+        return ['path' => $tfPath, 'ref' => $tf];
     }
 }

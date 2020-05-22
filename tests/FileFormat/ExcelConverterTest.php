@@ -3,9 +3,10 @@
 namespace Tests\CubeTools\CubeCommonBundle\FileFormat;
 
 use CubeTools\CubeCommonBundle\FileFormat\ExcelConverter;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
-use PHPUnit\Framework\TestCase;
 
 class ExcelConverterTest extends TestCase
 {
@@ -16,14 +17,14 @@ class ExcelConverterTest extends TestCase
     {
         $h2e = $this->getService();
         $xlo = $h2e->fromHtml($data);
-        $this->assertInstanceOf('\PHPExcel', $xlo);
+        $this->assertInstanceOf(Spreadsheet::class, $xlo);
     }
 
     public function testInvalidArg()
     {
         $h2e = $this->getService();
         $data = new self();
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $h2e->fromHtml($data);
     }
 
@@ -43,7 +44,7 @@ class ExcelConverterTest extends TestCase
             // CssSelector not installed, but enough code checked
             return;
         }
-        $this->assertInstanceOf('\PHPExcel', $xlo);
+        $this->assertInstanceOf(Spreadsheet::class, $xlo);
     }
 
     /**
@@ -52,7 +53,7 @@ class ExcelConverterTest extends TestCase
     public function testCreateResponse()
     {
         $fileName = 'anyName.xlsx';
-        $format = 'Excel2007';
+        $format = 'Xlsx';
         $contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
         $h2e = $this->getService();
@@ -66,11 +67,11 @@ class ExcelConverterTest extends TestCase
         $c = new Crawler();
         $c->addHtmlContent('<p>a</p><div id="tst">3</div><span>q</span>');
 
-        return array(
-            array('string' => '<table><tr><td>1</td><td>x</td></tr><tr id="tst"><td>2</td></tr></table>'),
-            array('node' => $c->getNode(0)),
-            array('Crawler' => $c),
-        );
+        return [
+            ['string' => '<table><tr><td>1</td><td>x</td></tr><tr id="tst"><td>2</td></tr></table>'],
+            ['node' => $c->getNode(0)],
+            ['Crawler' => $c],
+        ];
     }
 
     private function getService()
