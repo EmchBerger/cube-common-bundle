@@ -13,7 +13,10 @@ class ImageStatisticsTest extends TestCase
      */
     protected $testObject;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpObject()
     {
         $this->testObject = new ImageStatistics();
     }

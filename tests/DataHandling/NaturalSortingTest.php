@@ -541,7 +541,10 @@ class NaturalSortingTest extends \PHPUnit\Framework\TestCase
      */
     protected $testObject;
 
-    public function setUp()
+    /**
+     * @before
+     */
+    public function setUpObject()
     {
         $this->testObject = new NaturalSorting();
         $this->testObject->setIntegerPartLength(4);
