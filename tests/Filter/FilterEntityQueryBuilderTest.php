@@ -22,8 +22,10 @@ class FilterEntityQueryBuilderTest extends TestCase
 
     /**
      * Setting mock objects for tests.
+     *
+     * @before
      */
-    protected function setUp()
+    protected function setUpMock()
     {
         $this->object = new FilterEntityQueryBuilder();
 
@@ -114,14 +116,6 @@ class FilterEntityQueryBuilderTest extends TestCase
         ;
 
         $this->object->setAnalysedEntity($this->analysedEntity);
-    }
-
-    /**
-     * Tears down the fixture, for example, closes a network connection.
-     * This method is called after a test is executed.
-     */
-    protected function tearDown()
-    {
     }
 
     /**

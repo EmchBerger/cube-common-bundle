@@ -160,12 +160,12 @@ class LogsFunctionsTraitTest extends TestCase
         return array('savedAt' => $savedAt, 'savedBy' => $savedBy, 'changes' => $changes);
     }
 
-    private function assertThisAttributes(array $expected, array $values, $msg = null)
+    private function assertThisAttributes(array $expected, array $values, $msg = '')
     {
         $this->assertEquals($expected, $values, $msg); // do not care for order => assertEquals
     }
 
-    private function assertNoAttributes(array $values, $msg = null)
+    private function assertNoAttributes(array $values, $msg = '')
     {
         $this->assertSame(array(), $values, $msg);
     }
