@@ -618,7 +618,12 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected function logicWrong($message)
     {
-        trigger_error('LogicException: '.$message, E_USER_WARNING);
+        // to get exceptions in dev mode (while developping this class), just remove the @
+        @trigger_error('potential LogicException: '.$message, E_USER_WARNING); // write to log, in dev only
+        $dumpFn = 'dump';
+        if (function_exists($dumpFn)) { // in dev only
+            $dumpFn('potential LogicException: '.$message); // show it as dump, is not shown on ajax request
+        }
     }
 
     /**
