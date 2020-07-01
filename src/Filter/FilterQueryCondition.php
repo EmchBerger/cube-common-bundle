@@ -2,6 +2,7 @@
 
 namespace CubeTools\CubeCommonBundle\Filter;
 
+use CubeTools\CubeCommonBundle\DataHandling\SqlString;
 use CubeTools\CubeCommonBundle\Form\EventListener\AnyNoneFilterListener;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -262,6 +263,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
 
         if ($this->isActive($filterName) && !$this->isAnyOrNoneValue($filterName, $dbColName)) {
+            // the value is already converted to "like string"
             $value = $this->filter[$filterName];
             $param = $filterName;
             $this->qb->andWhere($dbColName.' LIKE :'.$param.' OR '.$dbColName.' LIKE :'.$param.'_htmlentities')->setParameter($param, $value)->setParameter($param.'_htmlentities', htmlentities($value));
@@ -275,9 +277,9 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
 
         if (!$this->isAnyOrNoneValue($filterName, $dbColName) && $this->isActive($filterName)) {
-            $value = $this->filter[$filterName];
+            $value = SqlString::toLikeString($this->filter[$filterName]);
             $param = $filterName;
-            $this->qb->andWhere($dbColName.' LIKE :'.$param.' OR '.$dbColName.' LIKE :'.$param.'_htmlentities')->setParameter($param, '%'.$value.'%')->setParameter($param.'_htmlentities', '%'.htmlentities($value).'%');
+            $this->qb->andWhere($dbColName.' LIKE :'.$param.' OR '.$dbColName.' LIKE :'.$param.'_htmlentities')->setParameter($param, $value)->setParameter($param.'_htmlentities', htmlentities($value));
         }
 
         return $this;
