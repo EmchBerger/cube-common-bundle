@@ -14,7 +14,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * @var array of form elements to use for filtering
      */
-    private $filter = array();
+    private $filter = [];
 
     /**
      * @var \Doctrine\ORM\QueryBuilder
@@ -34,7 +34,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     /**
      * @param array $filter array of form elements (returned by $mainForm->getData())
      */
-    public function __construct(array $filter = array())
+    public function __construct(array $filter = [])
     {
         if (isset($filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS])) {
             $filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS] = json_decode($filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS], true);
@@ -124,15 +124,15 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      *
      * @return array
      */
-    public function getAsParameters(array $skip = array())
+    public function getAsParameters(array $skip = [])
     {
         $filter = $this->filter;
         if ($skip) {
             $filter = array_diff_key($filter, array_fill_keys($skip, null));
         }
-        $actFilter = array_filter($filter, array($this, 'isAnActiveValue'));
+        $actFilter = array_filter($filter, [$this, 'isAnActiveValue']);
 
-        return array_map(array($this, 'toParameterValue'), $actFilter);
+        return array_map([$this, 'toParameterValue'], $actFilter);
     }
 
     /**
@@ -186,10 +186,10 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
     {
         if (isset($this->filter[$name]) && is_scalar($this->filter[$name])) {
             $value = str_replace('%', '', $this->filter[$name]);
-        } else if (isset($this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS])) {
+        } elseif (isset($this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS])) {
             if (in_array($name, $this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS][AnyNoneFilterListener::KEY_ANY_COLUMNS])) {
                 $value = $this->isAny;
-            } else if (in_array($name, $this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS][AnyNoneFilterListener::KEY_NONE_COLUMNS])) {
+            } elseif (in_array($name, $this->filter[AnyNoneFilterListener::KEY_ANY_NONE_SELECTED_COLUMNS][AnyNoneFilterListener::KEY_NONE_COLUMNS])) {
                 $value = $this->isNone;
             } else {
                 $value = false;
@@ -329,7 +329,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
                 $value = $value->toArray();
             }
 
-            $parameters = array();
+            $parameters = [];
             foreach ($value as $elementKey => $elementValue) {
                 $parameterKey = $filterName.$elementKey;
                 switch ($arrayType) {
@@ -344,7 +344,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
                 $this->qb->setParameter($parameterKey, $parameterValue);
             }
 
-            $likeQueryArray = array();
+            $likeQueryArray = [];
             foreach ($parameters as $parameterName => $parameterValue) {
                 $likeQueryArray[] = sprintf("%s LIKE :%s", $dbColName, $parameterName);
             }
@@ -362,7 +362,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
             $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
             if (is_int($value)) {
-                $value = array('from' => $value, 'to' => $value);
+                $value = ['from' => $value, 'to' => $value];
             }
             if ($value['from']) {
                 $this->qb->andWhere($dbColName.' >= :'.$param.'From')->setParameter($param.'From', $value['from']);
@@ -382,7 +382,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
             $dbColName = $this->getDbColumn($table, $filterName, $dbColumn);
             $param = $filterName;
             if ($value instanceof \DateTimeInterface) {
-                $value = array('from' => $value, 'to' => $value);
+                $value = ['from' => $value, 'to' => $value];
             }
             if ($value['from']) {
                 $this->qb->andWhere($dbColName.' >= :'.$param.'From')->setParameter($param.'From', $value['from']);
@@ -477,7 +477,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
         if ($this->qb instanceof FilterEntityQueryBuilder && $method !== 'leftJoin') {
             return $this;
         } else {
-            $callback = array($this->qb, $method);
+            $callback = [$this->qb, $method];
             if (!is_callable($callback)) {
                 $msg = "Undefined method '$method' (not in ".static::class;
                 if ($this->qb && is_object($this->qb)) {
