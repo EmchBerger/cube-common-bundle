@@ -5,6 +5,14 @@ namespace CubeTools\CubeCommonBundle\DataHandling;
 class SqlString
 {
     /**
+     * @var string[] from glob to sql pattern
+     */
+    private static $replacements = [
+        '*' => '%',
+        '?' => '_',
+    ];
+
+    /**
      * Convertes a (glob) string to a string for sql like.
      *
      * @param string $submitted like typed from the user
@@ -13,7 +21,7 @@ class SqlString
      */
     public static function toLikeString($submitted)
     {
-        $patter = $submitted
+        $pattern = self::toLikePatterns($submitted);
         if ('' === $pattern) {
             return $pattern; // without % at both sides
         } elseif ('%' === substr($pattern, 0, 1) || '%' === substr($pattern, -1)) {
@@ -39,6 +47,16 @@ class SqlString
             $forUser = $forSql;
         }
 
-        return $forUser;
+        return self::fromLikePatterns($forUser);
+    }
+
+    protected static function toLikePatterns($original)
+    {
+        return strtr($original, self::$replacements);
+    }
+
+    protected static function fromLikePatterns($submitted)
+    {
+        return strtr($submitted, array_flip(self::$replacements));
     }
 }
