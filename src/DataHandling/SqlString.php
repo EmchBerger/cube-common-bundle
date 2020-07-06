@@ -24,7 +24,7 @@ class SqlString
         $pattern = self::toLikePatterns($submitted);
         if ('' === $pattern) {
             return $pattern; // without % at both sides
-        } elseif ('%' === substr($pattern, 0, 1) || '%' === substr($pattern, -1)) {
+        } elseif ($submitted !== $pattern) {
             return $pattern;
         } else {
             // pre- and append %
@@ -41,7 +41,8 @@ class SqlString
      */
     public static function fromLikeString($forSql)
     {
-        if ('%' === substr($forSql, 0, 1) && '%' === substr($forSql, -1)) {
+        if (static::hasSqlPatternOnlyAtEnds($forSql)) {
+            // has % at start and end only
             $forUser = substr($forSql, 1, -1);
         } else {
             $forUser = $forSql;
@@ -58,5 +59,14 @@ class SqlString
     protected static function fromLikePatterns($submitted)
     {
         return strtr($submitted, array_flip(self::$replacements));
+    }
+
+    protected static function hasSqlPatternOnlyAtEnds($forSql)
+    {
+        return '%' === substr($forSql, 0, 1) && // % at start
+            false === strpos($forSql, '_') && // no _
+            false !== ($pPos = strpos($forSql, '%', 1)) && // has a 2nd %
+            strlen($forSql) - 1 === $pPos // % is at end
+        ;
     }
 }
