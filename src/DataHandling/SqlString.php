@@ -8,6 +8,8 @@ class SqlString
      * @var string[] from glob to sql pattern
      */
     private static $replacements = [
+        '%' => '\%', // escape for sql like
+        '_' => '\_', // dito
         '*' => '%',
         '?' => '_',
     ];

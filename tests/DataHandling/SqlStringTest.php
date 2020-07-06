@@ -16,6 +16,11 @@ class SqlStringTest extends TestCase
         ['%43jt%', '*43jt*', '43jt'],
         ['%9g3%hwks%', '*9g3*hwks*'],
         ['rwqk_je', 'rwqk?je'],
+        ['tex\_xu', 'tex_xu'], // would be better for [0]: '%tex\_xu%' instead of 'tex\_xu'
+        ['us\%98', 'us%98'], // would be better for [0]: '%us\%98%' instead of 'us\%98'
+        ['%oZ\_%', '*oZ_*'], // would be better for [2]: 'oZ\_' (instead of same as [0])
+        ['_\_yIU', '?_yIU'],
+        ['Q%i\%', 'Q*i%'],
     ];
 
     public function testToLikeString()
