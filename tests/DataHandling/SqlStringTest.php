@@ -31,7 +31,12 @@ class SqlStringTest extends TestCase
             $expected = $toTest[0];
             $fromUser = $toTest[1];
             $forSql = SqlString::toLikeString($fromUser);
-            $this->assertSame($expected, $forSql);
+            $this->assertSame($expected, $forSql, 'fromUser: '.$fromUser);
+            if (isset($toTest[2])) {
+                $fromUser = $toTest[2];
+                $forSql = SqlString::toLikeString($fromUser);
+                $this->assertSame($expected, $forSql, 'fromUser: '.$fromUser);
+            }
         }
     }
 
@@ -42,7 +47,7 @@ class SqlStringTest extends TestCase
         foreach ($toLike as $toTest) {
             $expected = isset($toTest[2]) ? $toTest[2] : $toTest[1];
             $forSql = $toTest[0];
-            $this->assertSame($expected, SqlString::fromLikeString($forSql));
+            $this->assertSame($expected, SqlString::fromLikeString($forSql), 'forSql: '.$forSql);
         }
     }
 }
