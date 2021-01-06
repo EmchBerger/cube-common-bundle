@@ -163,6 +163,9 @@ class DevelopmentSupportController extends Controller
         if (null === $module) {
             $module = 'XXmoduleXX';
         }
+        if (!$githubProjectUrl) {
+            $githubProjectUrl = 'https://github.example.com/INSERT_REAL_URL/UNTIL_HERE/';
+        }
 
         return $githubProjectUrl.'/issues/new?HINT= SIGN IN! &title='.urlencode('['.$module.'] ').urlencode($title).
                 '&body='.urlencode($msgBody);
