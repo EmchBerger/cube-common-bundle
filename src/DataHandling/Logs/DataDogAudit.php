@@ -435,8 +435,8 @@ class DataDogAudit extends AbstractBaseAudit
         ) {
             // insert call missing, incomplete log => update placeholder
             $diffArray[self::UNKNOWN_VERSION_CHANGE] = array(
-            'changes' => array('  ' => 'unknown document versions before'),
-            'savedBy' => 'UNKNOWN USER',
+            'changes' => array('  ' => $this->translator->translate('label.unknown.versions-before', [], 'cube_common')),
+            'savedBy' => $this->translator->translate('label.unknown.user', [], 'cube_common'),
             'savedAt' => new \DateTime('1970-01-01 00:00'),
             );
         } else {
