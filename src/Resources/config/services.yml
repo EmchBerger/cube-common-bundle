@@ -6,6 +6,8 @@ services:
         arguments:
             - '%kernel.root_dir%'
             - '%kernel.cache_dir%'
+        tags:
+            - kernel.cache_warmer
     cube_common.project_version: '@CubeTools\CubeCommonBundle\Project\ProjectVersionGit'
 
     CubeTools\CubeCommonBundle\UserSettings\UserSettingsStorage:

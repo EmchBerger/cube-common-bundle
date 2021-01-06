@@ -5,11 +5,12 @@ namespace CubeTools\CubeCommonBundle\Project;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Config\Resource\FileExistenceResource;
+use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 
 /**
  * Class to read version from this projects git repository.
  */
-class ProjectVersionGit
+class ProjectVersionGit implements CacheWarmerInterface
 {
     private $kernelRoot;
     private $cacheDir;
@@ -72,14 +73,31 @@ class ProjectVersionGit
         return $this->getGitData()['url'];
     }
 
-    protected function getGitData()
+    public function warmUp($cacheDir)
+    {
+        // from CacheWarmerInterface
+
+        $this->getGitData(true);
+    }
+
+    public function isOptional()
+    {
+        // from CacheWarmerInterface
+
+        return true; // warmup is optional
+    }
+
+    protected function getGitData($doCheck = null)
     {
         if (null !== $this->data) {
             return $this->data;
         }
 
         $cacheFile = $this->cacheDir.'/cube-common_ProjectVersionGit.json';
-        $cache = new ConfigCache($cacheFile, true);
+        if (null === $doCheck) {
+            $doCheck = 0 === rand(0, 15);
+        }
+        $cache = new ConfigCache($cacheFile, $doCheck);
         if ($cache->isFresh()) {
             $data = json_decode(file_get_contents($cacheFile), true);
             if (false !== $data) {
