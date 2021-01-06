@@ -1,7 +1,7 @@
 <?php
 namespace CubeTools\CubeCommonBundle\Subscriptions\Conditions;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Abstract class for subscription conditions.
@@ -19,7 +19,7 @@ abstract class AbstractCondition
     const KEY_ELEMENTS = 'elements';
 
     /**
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var \Doctrine\ORM\EntityManagerInterface
      */
     protected $em;
 
@@ -33,7 +33,7 @@ abstract class AbstractCondition
      */
     protected $outputData = array();
 
-    public function __construct(ObjectManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }

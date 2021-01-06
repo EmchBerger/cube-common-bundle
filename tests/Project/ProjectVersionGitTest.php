@@ -8,7 +8,10 @@ class ProjectVersionGitTest extends \PHPUnit\Framework\TestCase
 {
     private static $tmpDir;
 
-    public static function setUpBeforeClass()
+    /**
+     * @beforeClass
+     */
+    public static function setUpDirBeforeClass()
     {
         $tmpDir = sys_get_temp_dir();
         for ($i = 0; $i < 64; ++$i) {
@@ -62,7 +65,10 @@ class ProjectVersionGitTest extends \PHPUnit\Framework\TestCase
         return array('load' => array(), 'cached' => array());
     }
 
-    public static function tearDownAfterClass()
+    /**
+     * @afterClass
+     */
+    public static function tearDownDirAfterClass()
     {
         if (!getenv('TESTS_NO_CLEANUP')) {
             exec("rm -r '".static::$tmpDir."'");

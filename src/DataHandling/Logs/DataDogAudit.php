@@ -5,7 +5,7 @@ namespace CubeTools\CubeCommonBundle\DataHandling\Logs;
 use CubeTools\CubeCommonBundle\DataHandling\StringHelper;
 use DataDog\AuditBundle\Entity\AuditLog;
 use DataDog\AuditBundle\Entity\Association;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -25,7 +25,7 @@ class DataDogAudit extends AbstractBaseAudit
     const REMOVE_TEXT = 'element is deleted';
 
     /**
-     * @var ObjectManager
+     * @var EntityManagerInterface
      */
     protected $em;
 
@@ -49,7 +49,7 @@ class DataDogAudit extends AbstractBaseAudit
      */
     protected $translator;
 
-    public function __construct(ObjectManager $em, TranslatorInterface $translator)
+    public function __construct(EntityManagerInterface $em, TranslatorInterface $translator)
     {
         $this->em = $em;
         $this->translator = $translator;

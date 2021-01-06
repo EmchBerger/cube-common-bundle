@@ -19,7 +19,7 @@
     },
     "require-dev": {
         "cubetools/cube-common-develop": "dev-development@dev",
-        "phpstan/phpstan": "^0.12.3",
+        "phpstan/phpstan": "^0.12.26",
         "symfony/css-selector": "^3.4|^4.0",
         "symfony/dom-crawler": "^3.3|^4.0",
         "symfony/form": "^2.7|^3.0|^4.0",
