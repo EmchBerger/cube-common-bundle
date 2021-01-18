@@ -8,9 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use CubeTools\CubeCommonBundle\DataHandling\DataConversion;
+use Symfony\Component\Routing\Annotation\Route;
 
 class ColumnSelectorController extends Controller
 {
@@ -61,8 +60,7 @@ class ColumnSelectorController extends Controller
     /**
      * Saves column settings.
      *
-     * @Route("/colssettings", name="cubecommon.colsselector_send")
-     * @Method("PUT")
+     * @Route("/colssettings", name="cubecommon.colsselector_send", methods={"PUT"})
      */
     public function saveSettingsAction(Request $request)
     {

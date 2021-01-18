@@ -10,8 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Help controller.
@@ -34,8 +33,7 @@ class DevelopmentSupportController extends Controller
     /**
      * Simplify reporting of a bug by prefilling the form.
      *
-     * @Route("/reportbug", name="cube_common.reportbug")
-     * @Method("GET")
+     * @Route("/reportbug", name="cube_common.reportbug", methods={"GET"})
      */
     public function reportBugAction(Request $request)
     {
