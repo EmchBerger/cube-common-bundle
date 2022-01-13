@@ -73,7 +73,7 @@ class DataDogAudit extends AbstractBaseAudit
         $this->instanceCache = array(
             'id' => $id,
         ); // is only valid for one entity
-        if ($class !== $this->cache['class']) {
+        if ((empty($this->cache['class'])) || ($class !== $this->cache['class'])) {
             $this->cache = array('class' => $class);
         }
 
