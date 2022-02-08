@@ -2,6 +2,7 @@
 namespace CubeTools\CubeCommonBundle\Subscriptions\Message;
 
 use CubeTools\CubeCommonBundle\Subscriptions\Reports\AbstractReport;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Templating\EngineInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -28,9 +29,9 @@ class ContentGenerator
     protected $reports;
 
     /**
-     * @var \Swift_Message instance of message object
+     * @var Message instance of message object
      */
-    protected $messageObject;
+    protected $message;
 
     /**
      * @var string translated text for subject
@@ -78,11 +79,11 @@ class ContentGenerator
 
     /**
      * Setter for object responsible for creating email.
-     * @param \Swift_Message $messageObject instance of message object
+     * @param eMssage $message instance of message object
      */
-    public function setMessageObject($messageObject)
+    public function setMessage($message)
     {
-        $this->messageObject = $messageObject;
+        $this->message = $message;
     }
 
     /**
@@ -91,11 +92,9 @@ class ContentGenerator
     public function setAttachments()
     {
         foreach ($this->reports as $report) {
-            $this->messageObject->attach(
-                \Swift_Attachment::fromPath(
-                    $report[AbstractReport::KEY_REPORT_PATH],
-                    $report[AbstractReport::KEY_REPORT_FILE_CONTENT_TYPE]
-                )
+            $this->message->attachFromPath(
+                $report[AbstractReport::KEY_REPORT_PATH],
+                $report[AbstractReport::KEY_REPORT_FILE_CONTENT_TYPE]
             );
         }
     }
@@ -117,7 +116,7 @@ class ContentGenerator
      */
     public function setBody($contentType = 'text/html')
     {
-        $this->messageObject->setBody(
+        $this->message->setBody(
             $this->templatingEngine->render(
                 $this->bodyTemplate,
                 array('reports' => $this->reports,
@@ -169,7 +168,7 @@ class ContentGenerator
     public function setSubject()
     {
         if (isset($this->subjectText)) {
-            $this->messageObject->setSubject($this->subjectText);
+            $this->message->setSubject($this->subjectText);
         }
     }
 }

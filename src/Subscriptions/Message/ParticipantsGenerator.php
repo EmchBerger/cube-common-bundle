@@ -2,13 +2,14 @@
 namespace CubeTools\CubeCommonBundle\Subscriptions\Message;
 
 use CubeTools\CubeCommonBundle\Subscriptions\MailSubscription;
+use Symfony\Component\Mime\Message;
 
 class ParticipantsGenerator
 {
     /**
-     * @var \Swift_Message instance of message object
+     * @var Message instance of message object
      */
-    protected $messageObject;
+    protected $message;
 
     /**
      * @var array key is user name (or numeric), value - email
@@ -22,11 +23,11 @@ class ParticipantsGenerator
 
     /**
      * Setter for object responsible for creating message. Object can be changed by class methods.
-     * @param \Swift_Message $messageObject instance of message object
+     * @param Message $message instance of message
      */
-    public function setMessageObject($messageObject)
+    public function setMessage($message)
     {
-        $this->messageObject = $messageObject;
+        $this->message = $message;
     }
 
     /**
@@ -40,7 +41,7 @@ class ParticipantsGenerator
 
     /**
      * Method setting message recipients.
-     * @param \CubeTools\CubeCommonBundle\Subscriptions\MailSubscription subscription object
+     * @param \CubeTools\CubeCommonBundle\Subscriptions\MailSubscription $subscription object
      * @return array each element is message object
      */
     public function setParticipants(MailSubscription $subscription)
@@ -52,14 +53,14 @@ class ParticipantsGenerator
 
     /**
      * Method creating separate message for each recipient.
-     * @return array each element is \Swift_Message instance
+     * @return array each element is Message instance
      */
     public function createMessagesForRecipients()
     {
         $messageObjectArray = array();
 
         foreach ($this->participants as $participantName => $participantEmail) {
-            $newMessageObject = clone $this->messageObject;
+            $newMessageObject = clone $this->message;
 
             if (!is_numeric($participantName)) {
                 $name = $participantName;
