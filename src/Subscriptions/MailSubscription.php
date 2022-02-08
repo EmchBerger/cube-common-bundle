@@ -1,5 +1,9 @@
 <?php
+
 namespace CubeTools\CubeCommonBundle\Subscriptions;
+
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Message;
 
 class MailSubscription
 {
@@ -24,23 +28,23 @@ class MailSubscription
     protected $messageParticipantsGenerator;
 
     /**
-     * @var \Swift_Message instance of message object
+     * @var Message instance of message object
      */
-    protected $messageObject;
+    protected $message;
 
     /**
-     * @var \Swift_Mailer
+     * @var MailerInterface
      */
-    protected $swiftMailer;
+    protected $mailer;
 
     /**
      * @var integer id of currently set subscription (default: 0)
      */
     protected $subscriptionId = 0;
 
-    public function __construct(\Swift_Mailer $swiftMailer)
+    public function __construct(MailerInterface $mailer)
     {
-        $this->swiftMailer = $swiftMailer;
+        $this->mailer = $mailer;
     }
 
     /**
@@ -120,15 +124,15 @@ class MailSubscription
 
     /**
      * Setter for object responsible for creating email.
-     * @param \Swift_Message $messageObject instance of message object
+     * @param Message $messageObject instance of message object
      */
     public function setMessageObject($messageObject = null)
     {
         if (is_null($messageObject)) {
-            $messageObject = new \Swift_Message();
+            $messageObject = new Message();
         }
 
-        $this->messageObject = $messageObject;
+        $this->message = $messageObject;
     }
 
     /**
@@ -151,15 +155,15 @@ class MailSubscription
 
     /**
      * Method returning object for creating message.
-     * @return \Swift_Message instance of message object
+     * @return Message instance of message object
      */
     public function getMessageObject()
     {
-        if (!isset($this->messageObject)) {
-            $this->messageObject = new \Swift_Message();
+        if (!isset($this->message)) {
+            $this->message = new Message();
         }
 
-        return $this->messageObject;
+        return $this->message;
     }
 
     /**
@@ -196,7 +200,7 @@ class MailSubscription
      */
     public function createAndSendMessage($reportsArray = array(), $withAttachments = false)
     {
-        $this->messageContentGenerator->setMessageObject(
+        $this->messageContentGenerator->setMessage(
                     $this->getMessageObject()
             );
         $this->messageContentGenerator->setReports($reportsArray);
@@ -206,14 +210,14 @@ class MailSubscription
             $this->messageContentGenerator->setAttachments();
         }
 
-        $this->messageParticipantsGenerator->setMessageObject(
+        $this->messageParticipantsGenerator->setMessage(
                 $this->getMessageObject()
         );
         $this->messageParticipantsGenerator->setParticipants($this);
         $messages = $this->messageParticipantsGenerator->createMessagesForRecipients();
 
         foreach ($messages as $message) {
-            $this->swiftMailer->send($message);
+            $this->mailer->send($message);
         }
 
         if ($withAttachments) {
