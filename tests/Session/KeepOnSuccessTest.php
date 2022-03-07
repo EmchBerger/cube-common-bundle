@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use CubeTools\CubeCommonBundle\Session\KeepOnSuccess;
 use CubeTools\CubeCommonBundle\Session\KeepOnSuccessEventListener;
@@ -21,7 +21,7 @@ class KeepOnSuccessTest extends \PHPUnit\Framework\TestCase
     public function testKeep()
     {
         $listener = new KeepOnSuccessEventListener();
-        $event = $this->getFilterResponseEvent();
+        $event = $this->getResponseEvent();
         $mSess = $event->getRequest()->getSession();
 
         $mSess->set('stays3', 3);
@@ -57,7 +57,7 @@ class KeepOnSuccessTest extends \PHPUnit\Framework\TestCase
     public function testRemoveOnFail()
     {
         $listener = new KeepOnSuccessEventListener();
-        $event = $this->getFilterResponseEvent();
+        $event = $this->getResponseEvent();
         $mSess = $event->getRequest()->getSession();
 
         $mSess->set('keepW', array(9, 'v' => 'tU'));
@@ -99,16 +99,16 @@ class KeepOnSuccessTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($mSess->has('toRemoveZ'), 'has(toRemoveZ)');
     }
 
-    private function getFilterResponseEvent()
+    private function getResponseEvent()
     {
-        if (!class_exists(FilterResponseEvent::class)) {
-            $this->markTestSkipped(FilterResponseEvent::class.' is not installed');
+        if (!class_exists(ResponseEvent::class)) {
+            $this->markTestSkipped(ResponseEvent::class.' is not installed');
         }
         $mKernel = $this->getMockBuilder(HttpKernelInterface::class)->getMock();
         $request = new Request();
         $request->setSession(new Session(new MockArraySessionStorage()));
         $response = new Response();
 
-        return new FilterResponseEvent($mKernel, $request, HttpKernelInterface::MASTER_REQUEST, $response);
+        return new ResponseEvent($mKernel, $request, HttpKernelInterface::MASTER_REQUEST, $response);
     }
 }
