@@ -2,7 +2,7 @@
 
 namespace CubeTools\CubeCommonBundle\Session;
 
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -20,7 +20,7 @@ class KeepOnSuccessEventListener implements EventSubscriberInterface
         );
     }
 
-    public function handleDeleteOnError(FilterResponseEvent $event)
+    public function handleDeleteOnError(ResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -30,7 +30,9 @@ class KeepOnSuccessEventListener implements EventSubscriberInterface
         if ($response->isSuccessful()) {
             // fine, remove delete instruction
             $session = $event->getRequest()->getSession();
-            $session->remove(KeepOnSuccess::STORAGE_KEY);
+            if ($session) {
+                $session->remove(KeepOnSuccess::STORAGE_KEY);
+            }
         } elseif (!$response->isRedirection() && !$response->isInformational() &&
             $event->getRequest()->hasSession()
         ) {
