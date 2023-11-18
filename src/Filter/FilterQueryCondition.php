@@ -452,7 +452,7 @@ class FilterQueryCondition implements \ArrayAccess, \Countable
      */
     public static function toParameterValue($value)
     {
-        if (method_exists($value, 'toArray')) {
+        if (is_object($value) && method_exists($value, 'toArray')) {
             $value = $value->toArray();
         }
 
